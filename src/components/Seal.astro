@@ -1,0 +1,27 @@
+---
+/*
+  Sello de marca: anillo con texto, palomita de verificación y marcas de registro CAD.
+  Es el monograma de "andcom" y se usa en hero, contacto y favicon.
+*/
+interface Props { uid: string; text: string; spin?: boolean; class?: string }
+const { uid, text, spin = true, class: cls = "" } = Astro.props;
+---
+<svg class:list={["seal", cls, { spin }]} viewBox="0 0 120 120" aria-hidden="true">
+  <defs>
+    <path id={`circ-${uid}`} d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0" />
+  </defs>
+  <circle cx="60" cy="60" r="57" class="face" />
+  <circle cx="60" cy="60" r="35" fill="none" stroke="currentColor" stroke-width="1" />
+  <path d="M60 0v8M60 112v8M0 60h8M112 60h8" stroke="currentColor" stroke-width="1.2" />
+  <g class="ring"><text><textPath href={`#circ-${uid}`}>{text}</textPath></text></g>
+  <path d="M45 61l10 10 21-23" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
+
+<style>
+  .seal { color: var(--seal); display: block; overflow: visible; }
+  .face { fill: var(--bg); stroke: currentColor; stroke-width: 1.6; }
+  text { font: 500 8.2px var(--f-m); letter-spacing: .2em; fill: currentColor; text-transform: uppercase; }
+  .ring { transform-origin: 60px 60px; }
+  .spin .ring { animation: spin 40s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>

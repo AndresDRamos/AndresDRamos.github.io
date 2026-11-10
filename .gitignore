@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+.env
+.DS_Store
+# local: maquetas con datos sin depurar y config de Claude
+referencias/
+.claude/

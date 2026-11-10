@@ -1,0 +1,47 @@
+/*
+  Sistema de diseño · andcom
+  Base: "Certificado de linaje" (papel, tinta, sello).
+  Acentos de "Plano técnico": espacio modelo CAD, cotas y retícula.
+*/
+:root {
+  /* papel y tinta */
+  --bg: #F2EEE5;
+  --paper: #FAF7F0;
+  --ink: #1A1814;
+  --muted: #6B6457;
+  --rule: #D9D1C1;
+  --mark: #E9DDC2;
+  /* sello y veredictos */
+  --seal: #A3361F;
+  --ok: #2D6A3E;
+  --warn: #9A6614;
+  /* espacio modelo CAD (siempre oscuro) */
+  --cad-bg: #1E252D;
+  --cad-ink: #E9EEF2;
+  --cad-muted: #8C99A6;
+  --cad-line: rgba(201, 210, 218, .28);
+  --cad-cyan: #46D9E6;
+  --cad-red: #F0524B;
+  --cad-yellow: #F2D04B;
+
+  --f-d: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --f-b: "Inter Tight Variable", "Inter Tight", system-ui, "Segoe UI", sans-serif;
+  --f-m: "JetBrains Mono", ui-monospace, Consolas, monospace;
+
+  --w: 1160px;
+  --gutter: 16px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15130F; --paper: #1D1A15; --ink: #EDE7DA; --muted: #A39A89; --rule: #3A342B; --mark: #3A3122;
+    --seal: #E0694E; --ok: #74C08A; --warn: #E0A94A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15130F; --paper: #1D1A15; --ink: #EDE7DA; --muted: #A39A89; --rule: #3A342B; --mark: #3A3122;
+  --seal: #E0694E; --ok: #74C08A; --warn: #E0A94A;
+  color-scheme: dark;
+}

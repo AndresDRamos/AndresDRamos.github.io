@@ -1,0 +1,60 @@
+---
+import "@fontsource/instrument-serif/400.css";
+import "@fontsource/instrument-serif/400-italic.css";
+import "@fontsource-variable/inter-tight";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "../styles/global.css";
+import { content, CONTACT, type Lang } from "../i18n/content";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = content[lang];
+const site = Astro.site ?? new URL("https://andcom.dev");
+const esUrl = new URL("/", site).href;
+const enUrl = new URL("/en/", site).href;
+const canonical = lang === "es" ? esUrl : enUrl;
+
+const person = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Andrés D. Ramos Luna",
+  alternateName: "andcom",
+  jobTitle: lang === "es" ? "Consultor en planeación de producción y datos" : "Production planning and data consultant",
+  address: { "@type": "PostalAddress", addressLocality: "Monterrey", addressRegion: "N.L.", addressCountry: "MX" },
+  alumniOf: "Universidad Autónoma de Nuevo León",
+  url: canonical,
+  sameAs: [CONTACT.github],
+  knowsAbout: ["MRP", "Finite capacity planning", "Supply chain", "Data quality", "SQL Server", "Python"],
+};
+---
+<!doctype html>
+<html lang={lang}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{t.meta.title}</title>
+  <meta name="description" content={t.meta.description} />
+  <link rel="canonical" href={canonical} />
+  <link rel="alternate" hreflang="es" href={esUrl} />
+  <link rel="alternate" hreflang="en" href={enUrl} />
+  <link rel="alternate" hreflang="x-default" href={esUrl} />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#F2EEE5" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#15130F" media="(prefers-color-scheme: dark)" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={t.meta.title} />
+  <meta property="og:description" content={t.meta.description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:locale" content={lang === "es" ? "es_MX" : "en_US"} />
+  <meta name="twitter:card" content="summary" />
+  <script type="application/ld+json" set:html={JSON.stringify(person)} />
+  <script is:inline>
+    try { const th = localStorage.getItem("theme"); if (th === "light" || th === "dark") document.documentElement.dataset.theme = th; } catch (_) {}
+  </script>
+</head>
+<body>
+  <a class="skip no-print" href="#contenido">{t.ui.skip}</a>
+  <slot />
+</body>
+</html>

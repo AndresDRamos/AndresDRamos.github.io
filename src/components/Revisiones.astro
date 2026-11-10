@@ -1,0 +1,31 @@
+---
+import { content, type Lang } from "../i18n/content";
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const r = content[lang].revs;
+const last = r.items.length - 1;
+---
+<section class="block wrap" id="revisiones">
+  <header class="sec-h"><span class="num">IV</span><div><h2>{r.title}</h2><p>{r.intro}</p></div></header>
+  <table>
+    <thead><tr>{r.cols.map((c) => <th scope="col">{c}</th>)}</tr></thead>
+    <tbody>
+      {r.items.map((it, i) => (
+        <tr class:list={{ cur: i === last }}>
+          <td>{it.rev}</td><td>{it.date}</td><td>{it.text}</td><td>andcom</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</section>
+
+<style>
+  table { width: 100%; border-collapse: collapse; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); font-size: .96rem; }
+  th { font: 500 .68rem var(--f-m); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--rule); }
+  td { padding: 12px; border-top: 1px solid var(--rule); vertical-align: top; }
+  td:nth-child(1) { font: 500 .9rem var(--f-m); color: var(--seal); width: 56px; }
+  td:nth-child(2) { font: 500 .8rem var(--f-m); color: var(--muted); white-space: nowrap; width: 110px; padding-top: 14px; }
+  td:nth-child(4) { font: italic 400 1.15rem/1 var(--f-d); color: var(--seal); width: 90px; }
+  tr.cur td { background: var(--mark); }
+  @media (max-width: 560px) { th:nth-child(4), td:nth-child(4) { display: none; } td:nth-child(2) { width: auto; } }
+</style>

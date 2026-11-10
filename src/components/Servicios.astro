@@ -1,0 +1,41 @@
+---
+import { content, type Lang } from "../i18n/content";
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const o = content[lang].offer;
+---
+<section class="block wrap" id="servicios">
+  <header class="sec-h"><span class="num">III</span><div><h2>{o.title}</h2><p>{o.intro}</p></div></header>
+  <div class="offer">
+    {o.items.map((it) => (
+      <article class="card">
+        <span class="kicker">{it.kicker}</span>
+        <h3>{it.title}</h3>
+        <p>{it.body}</p>
+        {it.showScale && (
+          <div class="scale">
+            <span style="color:var(--ok)">{o.scale[0]}</span>
+            <span style="color:var(--warn)">{o.scale[1]}</span>
+            <span style="color:var(--seal)">{o.scale[2]}</span>
+          </div>
+        )}
+        <ul>{it.list.map((li) => <li>{li}</li>)}</ul>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .offer { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .card { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 26px; display: grid; gap: 14px; align-content: start; transition: border-color .2s, transform .2s; }
+  .card:hover { border-color: var(--ink); transform: translateY(-2px); }
+  .kicker { color: var(--seal); }
+  h3 { font-size: 1.85rem; line-height: 1.05; }
+  p { color: var(--muted); font-size: .96rem; }
+  ul { margin: 0; padding: 14px 0 0; list-style: none; display: grid; gap: 8px; font-size: .94rem; border-top: 1px solid var(--rule); }
+  li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; }
+  li::before { content: "✓"; color: var(--ok); font-weight: 600; }
+  .scale { display: flex; gap: 8px; flex-wrap: wrap; }
+  .scale span { font: 600 .64rem var(--f-m); letter-spacing: .1em; text-transform: uppercase; border: 1.5px solid currentColor; border-radius: 3px; padding: 4px 7px; }
+  @media (max-width: 900px) { .offer { grid-template-columns: 1fr; } }
+</style>
