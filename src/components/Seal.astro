@@ -13,14 +13,16 @@ const { uid, text, spin = true, class: cls = "" } = Astro.props;
   <circle cx="60" cy="60" r="57" class="face" />
   <circle cx="60" cy="60" r="35" fill="none" stroke="currentColor" stroke-width="1" />
   <path d="M60 0v8M60 112v8M0 60h8M112 60h8" stroke="currentColor" stroke-width="1.2" />
-  <g class="ring"><text><textPath href={`#circ-${uid}`}>{text}</textPath></text></g>
+  <!-- el anillo mide 2π·45 ≈ 283: textLength reparte el texto en casi toda la vuelta y deja
+       un hueco de una letra entre el punto final y el inicio, sea cual sea su largo -->
+  <g class="ring"><text><textPath href={`#circ-${uid}`} textLength="276" lengthAdjust="spacing">{text}</textPath></text></g>
   <path d="M45 61l10 10 21-23" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
 </svg>
 
 <style>
   .seal { color: var(--seal); display: block; overflow: visible; }
   .face { fill: var(--bg); stroke: currentColor; stroke-width: 1.6; }
-  text { font: 500 8.2px var(--f-m); letter-spacing: .2em; fill: currentColor; text-transform: uppercase; }
+  text { font: 500 8.2px var(--f-m); fill: currentColor; text-transform: uppercase; }
   .ring { transform-origin: 60px 60px; }
   .spin .ring { animation: spin 40s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
