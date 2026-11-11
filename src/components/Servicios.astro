@@ -4,38 +4,35 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const o = content[lang].offer;
 ---
-<section class="block wrap" id="servicios">
-  <header class="sec-h"><span class="num">III</span><div><h2>{o.title}</h2><p>{o.intro}</p></div></header>
-  <div class="offer">
-    {o.items.map((it) => (
-      <article class="card">
-        <span class="kicker">{it.kicker}</span>
-        <h3>{it.title}</h3>
-        <p>{it.body}</p>
-        {it.showScale && (
-          <div class="scale">
-            <span style="color:var(--ok)">{o.scale[0]}</span>
-            <span style="color:var(--warn)">{o.scale[1]}</span>
-            <span style="color:var(--seal)">{o.scale[2]}</span>
-          </div>
-        )}
-        <ul>{it.list.map((li) => <li>{li}</li>)}</ul>
-      </article>
-    ))}
+<section class="panel" id="servicios" data-nav>
+  <div class="wrap">
+    <header class="sec-h" data-r>
+      <span class="num">04</span>
+      <h2>{o.title}</h2>
+      <p>{o.intro}</p>
+    </header>
+    <div class="offer rail">
+      {o.items.map((it, i) => (
+        <article class="card" data-r style={`--i:${i + 1}`}>
+          <span class="kicker">{it.kicker}</span>
+          <h3>{it.title}</h3>
+          <p>{it.body}</p>
+          <ul>{it.list.map((li) => <li>{li}</li>)}</ul>
+        </article>
+      ))}
+    </div>
   </div>
 </section>
 
 <style>
-  .offer { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-  .card { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 26px; display: grid; gap: 14px; align-content: start; transition: border-color .2s, transform .2s; }
-  .card:hover { border-color: var(--ink); transform: translateY(-2px); }
+  .offer { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 1.8vw, 28px); }
+  .card { background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; padding: clamp(20px, 3.6vh, 40px) clamp(18px, 2.2vw, 36px);
+    display: grid; gap: clamp(10px, 1.8vh, 18px); align-content: start; }
+  .card:hover { border-color: var(--ink); }
   .kicker { color: var(--seal); }
-  h3 { font-size: 1.85rem; line-height: 1.05; }
-  p { color: var(--muted); font-size: .96rem; }
-  ul { margin: 0; padding: 14px 0 0; list-style: none; display: grid; gap: 8px; font-size: .94rem; border-top: 1px solid var(--rule); }
-  li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; }
-  li::before { content: "✓"; color: var(--ok); font-weight: 600; }
-  .scale { display: flex; gap: 8px; flex-wrap: wrap; }
-  .scale span { font: 600 .64rem var(--f-m); letter-spacing: .1em; text-transform: uppercase; border: 1.5px solid currentColor; border-radius: 3px; padding: 4px 7px; }
-  @media (max-width: 900px) { .offer { grid-template-columns: 1fr; } }
+  h3 { font-size: clamp(1.5rem, 1rem + 1.3vw, 2.3rem); line-height: 1.08; }
+  p { color: var(--muted); }
+  ul { margin: 0; padding: clamp(12px, 2vh, 18px) 0 0; list-style: none; display: grid; gap: 10px; border-top: 1px solid var(--rule); }
+  li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; line-height: 1.4; }
+  li::before { content: "✓"; color: var(--ok); font-weight: 700; }
 </style>

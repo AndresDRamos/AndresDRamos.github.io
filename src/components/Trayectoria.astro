@@ -1,0 +1,169 @@
+---
+/*
+  Trayectoria sobre el "espacio modelo" CAD: siempre oscuro, con retícula que
+  sigue al cursor y coordenadas en vivo. A la izquierda la línea de tiempo; a la
+  derecha las láminas originales dibujadas en AutoCAD.
+*/
+import { Image } from "astro:assets";
+import { content, type Lang } from "../i18n/content";
+import l1 from "../assets/img/layout-celda-transportador.png";
+import l2 from "../assets/img/layout-celdas-pems.png";
+import l3 from "../assets/img/layout-planta.png";
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const c = content[lang].career;
+const s = c.sheets;
+const imgs: Record<string, ImageMetadata> = { "layout-celda-transportador": l1, "layout-celdas-pems": l2, "layout-planta": l3 };
+const last = c.items.length - 1;
+---
+<section class="panel cad" id="trayectoria" data-nav>
+  <div class="xh xh-h" aria-hidden="true"></div>
+  <div class="xh xh-v" aria-hidden="true"></div>
+  <div class="xh-box" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="cols">
+      <div class="left">
+        <header class="sec-h" data-r>
+          <span class="num">05</span>
+          <h2>{c.title}</h2>
+          <p>{c.intro}</p>
+        </header>
+        <p class="origin" data-r style="--i:1">{c.origin.lead}<em>{c.origin.em}</em>{c.origin.rest}</p>
+        <ol class="time rail" data-r style="--i:2">
+          {c.items.map((it, i) => (
+            <li class:list={{ cur: i === last }}>
+              <span class="rev">{it.rev}</span><span class="date">{it.date}</span><span>{it.text}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div class="right no-print">
+        <div class="sheets rail">
+          {s.items.map((it, i) => (
+            <figure data-r="s" style={`--i:${i + 1}`}>
+              <button type="button" class="zoom" data-title={it.title} aria-label={`${it.title} · ${s.hint}`}>
+                <Image src={imgs[it.file]} alt={it.alt} widths={[480, 800, 1280]} sizes="(max-width: 900px) 86vw, 520px" data-full={imgs[it.file].src} />
+              </button>
+              <figcaption><span>{it.title}</span><span>{it.code}</span></figcaption>
+            </figure>
+          ))}
+        </div>
+        <div class="status" aria-hidden="true">
+          <span>{s.coords}</span><span class="xy">X 0.0000 · Y 0.0000</span><span class="hint">{s.hint}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <dialog class="dlg">
+    <img alt="" />
+    <form method="dialog"><span class="cap"></span><button>{s.close}</button></form>
+  </dialog>
+</section>
+
+<style>
+  .cad { overflow: hidden; background-color: var(--cad-bg); color: var(--cad-ink); color-scheme: dark;
+    background-image:
+      linear-gradient(rgba(160,180,200,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(160,180,200,.12) 1px, transparent 1px),
+      linear-gradient(rgba(160,180,200,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(160,180,200,.05) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px; }
+  .wrap { position: relative; z-index: 1; }
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(24px, 4vw, 72px); align-items: stretch; }
+  .left { display: grid; gap: clamp(14px, 2.4vh, 26px); align-content: center; }
+  .sec-h .num { color: var(--cad-cyan); }
+  .sec-h p { color: var(--cad-muted); }
+  .origin { font: 400 clamp(1.1rem, .9rem + .5vw, 1.35rem)/1.4 var(--f-d); }
+  .origin em { color: var(--cad-yellow); }
+  .time { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--cad-line); }
+  .time li { display: grid; grid-template-columns: 26px 86px 1fr; gap: 10px; align-items: baseline; padding: clamp(5px, .9vh, 9px) 0; border-bottom: 1px solid var(--cad-line); font-size: .94rem; line-height: 1.4; }
+  .rev { font: 500 .85rem var(--f-m); color: var(--cad-cyan); }
+  .date { font: 500 .82rem var(--f-m); color: var(--cad-muted); white-space: nowrap; }
+  .time li.cur { color: var(--cad-yellow); }
+
+  /* en escritorio las láminas toman el alto de la columna de texto, no al revés */
+  .right { position: relative; min-height: 0; }
+  .status { position: absolute; left: 0; right: 0; bottom: 0; }
+  .sheets { position: absolute; inset: 0 0 46px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1.7fr) minmax(0, 1fr); gap: 14px; min-height: 0; }
+  figure { margin: 0; border: 1px solid rgba(201,210,218,.55); background: #1B2128; display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; }
+  figure:first-child { grid-column: 1 / -1; }
+  .zoom { all: unset; cursor: zoom-in; display: block; overflow: hidden; min-height: 110px; }
+  .zoom:focus-visible { outline: 2px solid var(--cad-yellow); outline-offset: -2px; }
+  .zoom :global(img) { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s; }
+  .zoom:hover :global(img) { transform: scale(1.04); }
+  figcaption { display: grid; grid-template-columns: 1fr auto; border-top: 1px solid rgba(201,210,218,.55); font: 500 .8rem var(--f-m); letter-spacing: .04em; }
+  figcaption span { padding: 7px 12px; }
+  figcaption span + span { border-left: 1px solid rgba(201,210,218,.55); color: var(--cad-yellow); }
+  .status { display: flex; border: 1px solid var(--cad-line); font: 500 .78rem var(--f-m); color: var(--cad-muted); }
+  .status span { padding: 7px 12px; border-left: 1px solid var(--cad-line); white-space: nowrap; }
+  .status span:first-child { border-left: 0; color: var(--cad-cyan); }
+  .xy { font-variant-numeric: tabular-nums; min-width: 200px; }
+  .hint { margin-left: auto; }
+  /* retícula */
+  .xh { position: absolute; pointer-events: none; background: var(--cad-cyan); opacity: 0; transition: opacity .2s; z-index: 2; }
+  .xh-h { left: 0; right: 0; height: 1px; top: 0; }
+  .xh-v { top: 0; bottom: 0; width: 1px; left: 0; }
+  .xh-box { position: absolute; width: 12px; height: 12px; border: 1px solid var(--cad-cyan); pointer-events: none; opacity: 0; transform: translate(-50%, -50%); z-index: 2; }
+  .cad.on .xh { opacity: .35; }
+  .cad.on .xh-box { opacity: .9; }
+  dialog { border: 1px solid var(--cad-line); background: var(--cad-bg); color: var(--cad-ink); padding: 0; max-width: min(1200px, 94vw); }
+  dialog::backdrop { background: rgba(10, 14, 18, .82); }
+  dialog img { display: block; max-width: 100%; max-height: 82vh; }
+  dialog form { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px; font: 500 .8rem var(--f-m); border-top: 1px solid var(--cad-line); }
+  dialog button { font: inherit; background: transparent; color: var(--cad-cyan); border: 1px solid var(--cad-cyan); padding: 4px 10px; cursor: pointer; }
+
+  @media (max-width: 900px) {
+    .cols { grid-template-columns: 1fr; }
+    .right { display: grid; gap: 14px; }
+    .status { position: static; }
+    .sheets { position: static; grid-template-rows: none; }
+    figure, figure:first-child { grid-column: auto; }
+    .zoom { aspect-ratio: 16 / 10; }
+    .xy { display: none; }
+    .status span { white-space: normal; }
+  }
+  @media (max-width: 760px) {
+    .left { gap: 12px; }
+    .origin { font-size: 1.02rem; line-height: 1.35; }
+    .time { border-top: 0; grid-auto-columns: 62% !important; }
+    .time li { grid-template-columns: auto 1fr; align-content: start; gap: 4px 8px; padding: 10px 12px; border: 1px solid var(--cad-line); border-radius: 8px; background: rgba(27, 33, 40, .8); font-size: .88rem; }
+    .time li span:last-child { grid-column: 1 / -1; }
+    .sheets { grid-auto-columns: 80% !important; }
+    .status { display: none; }
+  }
+  @media print {
+    .cad { background: none; color: #000; }
+    .cols { grid-template-columns: 1fr; }
+    .rev, .date, .sec-h .num, .origin em, .time li.cur { color: #000; }
+  }
+</style>
+
+<script>
+  const cad = document.querySelector<HTMLElement>(".cad");
+  if (cad) {
+    const H = cad.querySelector<HTMLElement>(".xh-h")!, V = cad.querySelector<HTMLElement>(".xh-v")!;
+    const B = cad.querySelector<HTMLElement>(".xh-box")!, XY = cad.querySelector<HTMLElement>(".xy")!;
+    let raf = 0, x = 0, y = 0;
+    const paint = () => {
+      raf = 0;
+      H.style.transform = `translateY(${y}px)`; V.style.transform = `translateX(${x}px)`;
+      B.style.left = `${x}px`; B.style.top = `${y}px`;
+      XY.textContent = `X ${(x * 2.5).toFixed(4)} · Y ${((cad.clientHeight - y) * 2.5).toFixed(4)}`;
+    };
+    cad.addEventListener("pointermove", (e) => {
+      if (e.pointerType !== "mouse") return;
+      const r = cad.getBoundingClientRect(); x = e.clientX - r.left; y = e.clientY - r.top;
+      cad.classList.add("on"); if (!raf) raf = requestAnimationFrame(paint);
+    });
+    cad.addEventListener("pointerleave", () => cad.classList.remove("on"));
+
+    const dlg = cad.querySelector<HTMLDialogElement>(".dlg")!;
+    const dimg = dlg.querySelector("img")!;
+    cad.querySelectorAll<HTMLButtonElement>(".zoom").forEach((b) => b.addEventListener("click", () => {
+      const img = b.querySelector("img")!;
+      dimg.src = img.dataset.full ?? img.currentSrc; dimg.alt = img.alt;
+      dlg.querySelector(".cap")!.textContent = b.dataset.title ?? "";
+      dlg.showModal();
+    }));
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+  }
+</script>
