@@ -18,7 +18,7 @@ export const CONTACT = {
 export interface Content {
   meta: { title: string; description: string };
   nav: { id: string; label: string }[];
-  ui: { theme: string; langSwitch: string; langHref: string; skip: string; print: string; menu: string; sections: string };
+  ui: { theme: string; langSwitch: string; langHref: string; skip: string; print: string; copied: string; menu: string; sections: string };
   hero: { kicker: string; titleA: string; titleEm: string; lead: string; body: string; ctaPrimary: string; ctaSecondary: string;
     portraitAlt: string; pillars: { k: string; t: string }[] };
   arch: { title: string; intro: string; decisions: string; hint: string;
@@ -56,7 +56,7 @@ const es: Content = {
   ],
   ui: {
     theme: "Cambiar tema claro u oscuro", langSwitch: "EN", langHref: "/en/",
-    skip: "Saltar al contenido", print: "Imprimir como CV", menu: "Menú", sections: "Secciones",
+    skip: "Saltar al contenido", print: "Imprimir como CV", copied: "Correo copiado ✓", menu: "Menú", sections: "Secciones",
   },
   hero: {
     kicker: "Andrés D. Ramos Luna · Arquitectura de datos y planeación de producción",
@@ -253,7 +253,7 @@ const en: Content = {
   ],
   ui: {
     theme: "Toggle light or dark theme", langSwitch: "ES", langHref: "/",
-    skip: "Skip to content", print: "Print as résumé", menu: "Menu", sections: "Sections",
+    skip: "Skip to content", print: "Print as résumé", copied: "Email copied ✓", menu: "Menu", sections: "Sections",
   },
   hero: {
     kicker: "Andrés D. Ramos Luna · Data architecture and production planning",

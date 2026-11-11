@@ -14,7 +14,7 @@ const sealText = lang === "es" ? "arquitectura de datos · andcom · planeación
         <h2 data-r style="--i:1">{c.contact.titleA} <em>{c.contact.titleEm}</em></h2>
         <p data-r style="--i:2">{c.contact.body}</p>
         <div class="cta" data-r style="--i:3">
-          <a class="btn" href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+          <a class="btn" id="mail" href={`mailto:${CONTACT.email}`} data-email={CONTACT.email} data-copied={c.ui.copied} aria-live="polite">{CONTACT.email}</a>
           <a class="btn ghost no-print" href={CONTACT.github} target="_blank" rel="noopener">GitHub</a>
           <button class="btn ghost no-print" type="button" id="print">{c.ui.print}</button>
         </div>
@@ -42,4 +42,28 @@ const sealText = lang === "es" ? "arquitectura de datos · andcom · planeación
 
 <script>
   document.getElementById("print")?.addEventListener("click", () => window.print());
+
+  /* mailto: no hace nada si el visitante no tiene app de correo configurada;
+     además de intentar abrirla, el clic copia la dirección y lo avisa en el botón */
+  const mail = document.getElementById("mail") as HTMLAnchorElement | null;
+  /* respaldo para navegadores que niegan el portapapeles moderno */
+  const copyLegacy = (text: string) => {
+    const t = Object.assign(document.createElement("textarea"), { value: text });
+    t.style.cssText = "position:fixed;opacity:0";
+    document.body.append(t);
+    t.select();
+    const ok = document.execCommand("copy");
+    t.remove();
+    return ok;
+  };
+  mail?.addEventListener("click", () => {
+    const { email = "", copied = "" } = mail.dataset;
+    const done = () => {
+      mail.textContent = copied;
+      setTimeout(() => (mail.textContent = email), 2200);
+    };
+    const legacy = () => { if (copyLegacy(email)) done(); };
+    if (navigator.clipboard) navigator.clipboard.writeText(email).then(done, legacy);
+    else legacy();
+  });
 </script>
