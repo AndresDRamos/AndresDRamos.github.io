@@ -2,13 +2,13 @@
 import Base from "../layouts/Base.astro";
 import Header from "./Header.astro";
 import Hero from "./Hero.astro";
-import Cifras from "./Cifras.astro";
-import Metodo from "./Metodo.astro";
-import Expedientes from "./Expedientes.astro";
+import Arquitectura from "./Arquitectura.astro";
+import Sistemas from "./Sistemas.astro";
+import Principios from "./Principios.astro";
 import Servicios from "./Servicios.astro";
-import Laminas from "./Laminas.astro";
-import Revisiones from "./Revisiones.astro";
+import Trayectoria from "./Trayectoria.astro";
 import Contacto from "./Contacto.astro";
+import Cv from "./Cv.astro";
 import type { Lang } from "../i18n/content";
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -17,12 +17,12 @@ const { lang } = Astro.props;
   <Header lang={lang} />
   <main>
     <Hero lang={lang} />
-    <Cifras lang={lang} />
-    <Metodo lang={lang} />
-    <Expedientes lang={lang} />
+    <Arquitectura lang={lang} />
+    <Sistemas lang={lang} />
+    <Principios lang={lang} />
     <Servicios lang={lang} />
-    <Laminas lang={lang} />
-    <Revisiones lang={lang} />
+    <Trayectoria lang={lang} />
     <Contacto lang={lang} />
   </main>
+  <Cv lang={lang} />
 </Base>

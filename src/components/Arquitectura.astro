@@ -1,0 +1,206 @@
+---
+/*
+  Arquitectura como diagrama, no como recorrido. A la izquierda el mapa de la
+  plataforma: el dato viaja de izquierda a derecha. Nace en planta (apps de
+  captura y ERP), el ETL lo sube al almacén en la nube y de ahí salen el consumo
+  y los motores de planeación; el gobierno envuelve todo. Cada bloque es un
+  botón: al elegirlo, el panel de la derecha explica cómo está diseñado.
+  Sin JS las explicaciones se muestran apiladas bajo el mapa.
+*/
+import { content, type Lang } from "../i18n/content";
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const a = content[lang].arch;
+const [app, src, etl, wh, gov, eng, api] = a.stages;
+---
+<section class="panel arch" id="arquitectura" data-nav>
+  <div class="wrap">
+    <header class="sec-h" data-r>
+      <span class="num">01</span>
+      <h2>{a.title}</h2>
+      <p>{a.intro}</p>
+    </header>
+
+    <div class="grid">
+      <div class="map" data-r style="--i:1" role="group" aria-label={a.title}>
+        <!-- el gobierno es el marco: envuelve a todas las capas -->
+        <button type="button" class="nd gov" data-i="4" aria-pressed="false">
+          <span class="b">5</span><b>{gov.node}</b><span class="sub">{gov.sub}</span>
+        </button>
+
+        <div class="plan">
+          <span class="zone plant" aria-hidden="true"><i>{a.zones[0]}</i></span>
+          <span class="zone cloud" aria-hidden="true"><i>{a.zones[1]}</i></span>
+
+          <button type="button" class="nd app" data-i="0" aria-pressed="true">
+            <span class="b">1</span><b>{app.node}</b><span class="sub">{app.sub}</span>
+          </button>
+          <button type="button" class="nd erp" data-i="1" aria-pressed="false">
+            <span class="b">2</span><b>{src.node}</b><span class="sub">{src.sub}</span>
+          </button>
+
+          <!-- el corchete reúne los dos orígenes en una sola carga -->
+          <span class="join" aria-hidden="true"></span>
+          <button type="button" class="nd etl" data-i="2" aria-pressed="false">
+            <span class="b">3</span><b>{etl.node}</b>
+            <span class="pipe" aria-hidden="true"></span>
+            <span class="sub">{etl.sub}</span>
+          </button>
+
+          <button type="button" class="nd wh" data-i="3" aria-pressed="false">
+            <span class="b">4</span><b>{wh.node}</b>
+            <span class="sch" aria-hidden="true">{a.schemas.map((s, k) => (<>{k === 1 && <em>✓</em>}<i>{s}</i></>))}</span>
+            <span class="sub">{a.links.gate}</span>
+          </button>
+
+          <span class="arr a1" aria-hidden="true"><span class="pipe"></span><small>{a.links.views}</small></span>
+          <span class="arr a2" aria-hidden="true"><span class="pipe two"></span><small>{a.links.reads}</small></span>
+
+          <button type="button" class="nd api" data-i="6" aria-pressed="false">
+            <span class="b">7</span><b>{api.node}</b><span class="sub">{api.sub}</span>
+          </button>
+          <button type="button" class="nd eng" data-i="5" aria-pressed="false">
+            <span class="b">6</span><b>{eng.node}</b><span class="sub">{eng.sub}</span>
+          </button>
+        </div>
+
+        <p class="hint no-print">{a.hint}</p>
+      </div>
+
+      <div class="stages" data-r="x" style="--i:2" aria-live="polite">
+        {a.stages.map((s, i) => (
+          <article class:list={["stage", { on: i === 0 }]} data-i={i}>
+            <span class="kicker">{String(i + 1).padStart(2, "0")} · {s.tag}</span>
+            <h3>{s.title}</h3>
+            <p class="body">{s.body}</p>
+            <div class="tech">{s.tech.map((t) => <span class="chip">{t}</span>)}</div>
+            <div class="why">
+              <span class="kicker">{a.decisions}</span>
+              <ul>{s.decisions.map((d) => <li>{d}</li>)}</ul>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(18px, 2.6vw, 44px); align-items: stretch; }
+
+  /* ── mapa ── */
+  .map { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; border: 1.5px dashed var(--seal); border-radius: 14px; padding: 0 clamp(10px, 1.2vw, 18px) 10px; }
+  .plan { display: grid; grid-template-columns: minmax(0, 1.05fr) 14px minmax(0, .8fr) minmax(0, 1.35fr) minmax(40px, .5fr) minmax(0, 1.25fr);
+    grid-template-rows: 30px minmax(0, 1fr) minmax(0, 1fr) 12px; row-gap: 12px; margin-top: clamp(10px, 1.6vh, 16px); min-height: clamp(220px, 37vh, 420px); }
+
+  .zone { grid-row: 1 / -1; border: 1px solid var(--rule); border-radius: 10px; background: color-mix(in srgb, var(--paper) 75%, transparent); position: relative; }
+  .zone.plant { grid-column: 1; }
+  .zone.cloud { grid-column: 4 / -1; }
+  .zone i { position: absolute; left: 12px; top: 7px; font: 600 .72rem/1 var(--f-b); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+  .nd { all: unset; box-sizing: border-box; cursor: pointer; position: relative; z-index: 1; display: grid; align-content: center; justify-items: center; gap: 4px; text-align: center;
+    background: var(--bg); border: 1.5px solid var(--rule); border-radius: 10px; padding: 10px 10px; transition: border-color .25s, background .25s, transform .25s, box-shadow .25s; }
+  .nd:hover { border-color: var(--ink); transform: translateY(-2px); }
+  .nd:focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
+  .nd[aria-pressed="true"] { border-color: var(--seal); background: var(--mark); box-shadow: 0 0 0 3px color-mix(in srgb, var(--seal) 22%, transparent); }
+  .nd b { font: 560 clamp(1rem, .8rem + .55vw, 1.4rem)/1.15 var(--f-d); }
+  .sub { font: 500 .78rem/1.35 var(--f-b); color: var(--muted); }
+  .b { position: absolute; left: -9px; top: -9px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+    font: 500 .7rem var(--f-m); background: var(--bg); border: 1.5px solid var(--rule); color: var(--muted); transition: inherit; }
+  .nd[aria-pressed="true"] .b { background: var(--seal); border-color: var(--seal); color: #fff; }
+
+  .app { grid-column: 1; grid-row: 2; margin-inline: 12px; }
+  .erp { grid-column: 1; grid-row: 3; margin-inline: 12px; }
+  .wh  { grid-column: 4; grid-row: 2 / 4; margin-left: 12px; }
+  .api { grid-column: 6; grid-row: 2; margin-right: 12px; }
+  .eng { grid-column: 6; grid-row: 3; margin-right: 12px; }
+  /* corchete: une la salida de los dos orígenes; de su centro parte la flecha del ETL */
+  .join { grid-column: 2; grid-row: 2 / 4; z-index: 1; align-self: center; height: 50%; border: 2px solid var(--seal); border-left: 0; border-radius: 0 8px 8px 0; opacity: .7; }
+
+  /* el marco de gobierno */
+  .gov { grid-template-columns: auto 1fr; justify-items: start; align-items: baseline; gap: 2px 14px; text-align: left;
+    border: 0; border-bottom: 1.5px dashed var(--seal); border-radius: 0; background: none; padding: 12px 6px 10px 20px; margin-inline: calc(-1 * clamp(10px, 1.2vw, 18px)); }
+  .gov:hover { transform: none; }
+  .gov[aria-pressed="true"] { box-shadow: none; border-radius: 12px 12px 0 0; }
+  .gov .b { left: -4px; top: -11px; }
+
+  /* flechas: el dato fluye (trazo animado) */
+  .pipe { display: block; position: relative; height: 2px; width: 100%; margin: 5px 0;
+    background: repeating-linear-gradient(90deg, var(--seal) 0 8px, transparent 8px 14px); background-size: 14px 2px; animation: flow 0.9s linear infinite; }
+  .pipe::after { content: ""; position: absolute; right: -2px; top: -4px; border: 5px solid transparent; border-left: 8px solid var(--seal); border-right: 0; }
+  @keyframes flow { to { background-position: 14px 0; } }
+  .etl { grid-column: 3; grid-row: 2 / 4; align-self: center; border-color: transparent; background: none; padding: 8px 4px; margin-inline: 0 4px; }
+  .etl[aria-pressed="true"] { border-color: var(--seal); }
+  .arr { grid-column: 5; align-self: center; display: grid; justify-items: center; padding-inline: 6px; z-index: 1; text-align: center; }
+  .a1 { grid-row: 2; } .a2 { grid-row: 3; }
+  .arr small { font: 500 .72rem/1.2 var(--f-b); color: var(--muted); }
+  /* ida y vuelta: los motores leen el modelo y publican sus fotos en él */
+  .pipe.two { animation: none; }
+  .pipe.two::before { content: ""; position: absolute; left: -2px; top: -4px; border: 5px solid transparent; border-right: 8px solid var(--seal); border-left: 0; }
+
+  /* esquemas del almacén, con la puerta de validación entre staging y core */
+  .sch { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; margin: 4px 0 2px; }
+  .sch i { font: 500 .76rem/1 var(--f-m); padding: 5px 7px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); }
+  .sch em { font: 700 .7rem/1 var(--f-b); width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--seal); color: #fff; }
+  .hint { font: 500 .82rem/1.3 var(--f-b); color: var(--muted); padding: 10px 2px 0; }
+
+  /* ── explicación del bloque elegido ── */
+  .stage { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: clamp(16px, 2.8vh, 30px) clamp(16px, 2vw, 32px);
+    display: grid; gap: clamp(6px, 1.2vh, 14px); align-content: start; }
+  .stage + .stage { margin-top: 14px; }
+  .stage > .kicker { color: var(--seal); }
+  h3 { font-size: clamp(1.35rem, 1rem + 1.1vw, 2.1rem); line-height: 1.1; }
+  .body { color: var(--muted); font-size: .97rem; line-height: 1.5; }
+  .tech { display: flex; flex-wrap: wrap; gap: 6px; }
+  .why { display: grid; gap: 6px; margin-top: 2px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  .why li { position: relative; padding: clamp(6px, 1.05vh, 10px) 0 clamp(6px, 1.05vh, 10px) 24px; border-top: 1px solid var(--rule); font-size: .96rem; line-height: 1.4; }
+  .why li::before { content: ""; position: absolute; left: 2px; top: calc(clamp(6px, 1.05vh, 10px) + .55em); width: 10px; height: 2px; background: var(--seal); }
+
+  :global(.js) .stages { display: grid; }
+  :global(.js) .stage { grid-area: 1 / 1; margin: 0; opacity: 0; visibility: hidden; transform: translateY(14px); transition: opacity .3s, transform .4s cubic-bezier(.2, .7, .2, 1), visibility .3s; }
+  :global(.js) .stage.on { opacity: 1; visibility: visible; transform: none; }
+  :global(.js) .stage.on .why li { animation: li-in .45s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--k, 0) * 60ms + 80ms); }
+  @keyframes li-in { from { opacity: 0; transform: translateX(14px); } }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; gap: 12px; }
+    .map { padding: 0 8px 8px; border-radius: 12px; }
+    .plan { grid-template-columns: minmax(0, 1fr) 8px minmax(0, .6fr) minmax(0, 1fr) 20px minmax(0, 1.1fr); grid-template-rows: 22px auto auto 8px; row-gap: 8px; min-height: 0; margin-top: 8px; }
+    .sub, .sch, .arr small, .hint { display: none; }
+    .nd { padding: 9px 4px; border-radius: 8px; }
+    .nd b { font-size: .86rem; }
+    .b { width: 18px; height: 18px; font-size: .62rem; left: -6px; top: -8px; }
+    .app, .erp { margin-inline: 6px; } .wh { margin-left: 6px; } .api, .eng { margin-right: 6px; }
+    .gov { margin-inline: -8px; padding: 9px 6px 8px 16px; }
+    .gov .b { left: -3px; top: -9px; }
+    .zone i { left: 7px; top: 5px; font-size: .62rem; }
+    .etl { padding: 4px 0; margin-inline: 0 2px; }
+    .arr { padding-inline: 3px; }
+    .stage { padding: 12px 14px 8px; gap: 7px; }
+    .body { display: none; }
+    h3 { font-size: 1.25rem; }
+    .why li { font-size: .9rem; }
+  }
+  @media (max-width: 900px) and (max-height: 700px) { .tech { display: none; } }
+  @media print {
+    .grid { grid-template-columns: 1fr; }
+    .map { display: none; }
+    .stages { display: block !important; }
+    .stage { opacity: 1 !important; visibility: visible !important; transform: none !important; break-inside: avoid; padding: 8pt 0; border: 0; border-top: 1px solid var(--rule); border-radius: 0; }
+  }
+</style>
+
+<script>
+  const arch = document.querySelector<HTMLElement>(".arch");
+  if (arch) {
+    const nodes = [...arch.querySelectorAll<HTMLButtonElement>(".nd")];
+    const stages = [...arch.querySelectorAll<HTMLElement>(".stage")];
+    stages.forEach((s) => s.querySelectorAll<HTMLElement>(".why li").forEach((li, k) => li.style.setProperty("--k", String(k))));
+    const pick = (i: number) => {
+      nodes.forEach((n) => n.setAttribute("aria-pressed", String(Number(n.dataset.i) === i)));
+      stages.forEach((s) => s.classList.toggle("on", Number(s.dataset.i) === i));
+    };
+    nodes.forEach((n) => n.addEventListener("click", () => pick(Number(n.dataset.i))));
+  }
+</script>

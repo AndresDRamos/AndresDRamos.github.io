@@ -24,12 +24,15 @@
   --cad-red: #F0524B;
   --cad-yellow: #F2D04B;
 
-  --f-d: "Instrument Serif", Georgia, "Times New Roman", serif;
-  --f-b: "Inter Tight Variable", "Inter Tight", system-ui, "Segoe UI", sans-serif;
+  /* tipografía: serif de texto para títulos, sans de lectura para todo lo demás */
+  --f-d: "Source Serif 4 Variable", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-b: "Inter Variable", "Inter", system-ui, "Segoe UI", sans-serif;
   --f-m: "JetBrains Mono", ui-monospace, Consolas, monospace;
 
-  --w: 1160px;
-  --gutter: 16px;
+  /* el sitio usa todo el ancho; el margen crece con la pantalla */
+  --w: 1560px;
+  --gutter: clamp(20px, 4.2vw, 80px);
+  --hdr: 64px;
   color-scheme: light;
 }
 

@@ -1,7 +1,7 @@
 ---
-import "@fontsource/instrument-serif/400.css";
-import "@fontsource/instrument-serif/400-italic.css";
-import "@fontsource-variable/inter-tight";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/source-serif-4";
+import "@fontsource-variable/source-serif-4/wght-italic.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "../styles/global.css";
@@ -20,12 +20,12 @@ const person = {
   "@type": "Person",
   name: "Andrés D. Ramos Luna",
   alternateName: "andcom",
-  jobTitle: lang === "es" ? "Consultor en planeación de producción y datos" : "Production planning and data consultant",
+  jobTitle: lang === "es" ? "Arquitecto de datos y consultor en planeación de producción" : "Data architect and production planning consultant",
   address: { "@type": "PostalAddress", addressLocality: "Monterrey", addressRegion: "N.L.", addressCountry: "MX" },
   alumniOf: "Universidad Autónoma de Nuevo León",
   url: canonical,
   sameAs: [CONTACT.github],
-  knowsAbout: ["MRP", "Finite capacity planning", "Supply chain", "Data quality", "SQL Server", "Python"],
+  knowsAbout: ["Data architecture", "ETL", "Data warehousing", "Data governance", "MRP", "Finite capacity planning", "Supply chain", "SQL Server", "Azure SQL", "Python"],
 };
 ---
 <!doctype html>
@@ -50,6 +50,7 @@ const person = {
   <meta name="twitter:card" content="summary" />
   <script type="application/ld+json" set:html={JSON.stringify(person)} />
   <script is:inline>
+    document.documentElement.classList.add("js");
     try { const th = localStorage.getItem("theme"); if (th === "light" || th === "dark") document.documentElement.dataset.theme = th; } catch (_) {}
   </script>
 </head>

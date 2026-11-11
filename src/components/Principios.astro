@@ -1,0 +1,42 @@
+---
+import { content, type Lang } from "../i18n/content";
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const m = content[lang].principles;
+---
+<section class="panel" id="principios" data-nav>
+  <div class="wrap">
+    <header class="sec-h" data-r>
+      <span class="num">03</span>
+      <h2>{m.title}</h2>
+      <p>{m.intro}</p>
+    </header>
+    <div class="grid rail">
+      {m.items.map((it, i) => (
+        <article data-r="x" style={`--i:${i + 1}`}>
+          <span class="ord" aria-hidden="true">{i + 1}</span>
+          <h3>{it.title}</h3>
+          <p>{it.body}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--ink); }
+  article { display: grid; gap: clamp(10px, 1.8vh, 18px); align-content: start; padding: clamp(18px, 3.4vh, 40px) clamp(16px, 1.8vw, 32px) clamp(8px, 2vh, 24px); border-left: 1px solid var(--rule); }
+  article:first-child { border-left: 0; padding-left: 0; }
+  .ord { font: 500 clamp(3.4rem, 2rem + 4.6vw, 7rem)/.85 var(--f-d); color: var(--seal); }
+  h3 { font-size: clamp(1.4rem, 1rem + 1.1vw, 2.1rem); line-height: 1.1; }
+  p { color: var(--muted); font-size: 1.06rem; }
+  @media (max-width: 1100px) and (min-width: 761px) {
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    article:nth-child(odd) { border-left: 0; padding-left: 0; }
+    article:nth-child(n+3) { border-top: 1px solid var(--rule); }
+  }
+  @media (max-width: 760px) {
+    .grid { border-top: 0; }
+    article, article:first-child { border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); padding: 20px 18px 22px; }
+  }
+</style>
