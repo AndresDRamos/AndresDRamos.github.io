@@ -6,3 +6,8 @@ dist/
 # local: maquetas con datos sin depurar y config de Claude
 referencias/
 .claude/
+
+# documentos internos de diseño (mencionan cliente e infraestructura): solo en local
+PLAN-V2.md
+TEXTOS-V2.md
+bocetos/

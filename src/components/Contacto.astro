@@ -1,17 +1,20 @@
 ---
-import Seal from "./Seal.astro";
+/*
+  Contacto: la invitación final. A la derecha, el símbolo «Joya» en grande: la
+  gema late como en la red de la portada.
+*/
 import { content, CONTACT, type Lang } from "../i18n/content";
 interface Props { lang: Lang }
 const { lang } = Astro.props;
+const ui = content[lang].ui;
 const c = content[lang];
-const sealText = lang === "es" ? "arquitectura de datos · andcom · planeación ·" : "data architecture · andcom · plant planning ·";
 ---
-<section class="panel contact" id="contacto" data-nav>
+<section class="panel contact" id="contacto" data-nav data-title={ui.panels.contacto} style="--lx:78%;--ly:50%">
   <div class="wrap">
     <div class="main">
       <div class="txt">
-        <span class="kicker" data-r>06 · {c.nav[c.nav.length - 1].label}</span>
-        <h2 data-r style="--i:1">{c.contact.titleA} <em>{c.contact.titleEm}</em></h2>
+        <span class="kicker c-acc" data-r>{c.nav[c.nav.length - 1].label}</span>
+        <h2 data-r style="--i:1">{c.contact.title}</h2>
         <p data-r style="--i:2">{c.contact.body}</p>
         <div class="cta" data-r style="--i:3">
           <a class="btn" id="mail" href={`mailto:${CONTACT.email}`} data-email={CONTACT.email} data-copied={c.ui.copied} aria-live="polite">{CONTACT.email}</a>
@@ -19,7 +22,18 @@ const sealText = lang === "es" ? "arquitectura de datos · andcom · planeación
           <button class="btn ghost no-print" type="button" id="print">{c.ui.print}</button>
         </div>
       </div>
-      <div data-r="s" style="--i:2"><Seal uid="contact" text={sealText} class="seal-lg" /></div>
+      <div class="simbolo" data-r="s" style="--i:2" aria-hidden="true">
+        <svg viewBox="0 0 32 32">
+          <defs>
+            <linearGradient id="joya-contacto" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" style="stop-color:var(--j0)" /><stop offset=".35" style="stop-color:var(--j1)" />
+              <stop offset=".7" style="stop-color:var(--j2)" /><stop offset="1" style="stop-color:var(--j3)" />
+            </linearGradient>
+          </defs>
+          <path fill="currentColor" d="M8.75 4.25 L19.725 4.25 L26.75 11.275 L26.75 22 L23.25 18.5 L23.25 17.75 L11.725 17.75 L8.75 20.725 L8.75 21.275 L11.725 24.25 L17.5 24.25 L21 27.75 L10.275 27.75 L5.25 22.725 L5.25 19.275 L10.275 14.25 L23.25 14.25 L23.25 12.725 L18.275 7.75 L5.25 7.75Z" />
+          <path class="gema" fill="url(#joya-contacto)" d="M22.5 19.25 L26.75 23.5 L22.5 27.75 L18.25 23.5Z" />
+        </svg>
+      </div>
     </div>
     <footer><span>{c.footer.left}</span><span>{c.footer.right}</span></footer>
   </div>
@@ -30,14 +44,14 @@ const sealText = lang === "es" ? "arquitectura de datos · andcom · planeación
   .contact > .wrap { grid-template-rows: 1fr auto; }
   .main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: clamp(24px, 5vw, 96px); align-items: center; }
   .txt { display: grid; gap: clamp(14px, 2.6vh, 28px); justify-items: start; }
-  .kicker { color: var(--seal); }
-  h2 { font-size: clamp(2.6rem, 1rem + 6.4vw, 7.5rem); line-height: .98; letter-spacing: -.03em; }
-  h2 em { color: var(--seal); font-weight: 500; }
+  h2 { font-size: clamp(2.4rem, 1rem + 5.4vw, 6.4rem); line-height: .98; letter-spacing: -.04em; font-weight: 600; max-width: 14ch; }
   .txt p { color: var(--muted); max-width: 56ch; font-size: clamp(1.05rem, .95rem + .4vw, 1.3rem); }
-  .main :global(.seal-lg) { width: clamp(120px, 20vw, 300px); }
-  footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 18px; border-top: 1px solid var(--rule); font: 500 .85rem var(--f-b); color: var(--muted); }
-  @media (max-width: 760px) { .main { grid-template-columns: 1fr; } .main :global(.seal-lg) { width: 110px; } }
-  @media print { .main :global(.seal-lg) { width: 90px; } h2 { font-size: 24pt; } }
+  .simbolo { width: clamp(140px, 22vw, 320px); color: var(--ink); }
+  .simbolo svg { width: 100%; height: auto; overflow: visible; display: block; }
+  .gema { transform-box: fill-box; transform-origin: center; animation: gema 3s ease-out infinite; }
+  @keyframes gema { 0%, 60%, 100% { transform: scale(1); filter: none; } 66% { transform: scale(1.22); filter: brightness(1.3); } }
+  footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 18px 0 56px; border-top: 1px solid var(--line); font: 500 .74rem var(--f-m); letter-spacing: .04em; color: var(--muted); }
+  @media (max-width: 760px) { .main { grid-template-columns: 1fr; } .simbolo { width: 110px; order: -1; } }
 </style>
 
 <script>
@@ -46,7 +60,6 @@ const sealText = lang === "es" ? "arquitectura de datos · andcom · planeación
   /* mailto: no hace nada si el visitante no tiene app de correo configurada;
      además de intentar abrirla, el clic copia la dirección y lo avisa en el botón */
   const mail = document.getElementById("mail") as HTMLAnchorElement | null;
-  /* respaldo para navegadores que niegan el portapapeles moderno */
   const copyLegacy = (text: string) => {
     const t = Object.assign(document.createElement("textarea"), { value: text });
     t.style.cssText = "position:fixed;opacity:0";
@@ -58,10 +71,7 @@ const sealText = lang === "es" ? "arquitectura de datos · andcom · planeación
   };
   mail?.addEventListener("click", () => {
     const { email = "", copied = "" } = mail.dataset;
-    const done = () => {
-      mail.textContent = copied;
-      setTimeout(() => (mail.textContent = email), 2200);
-    };
+    const done = () => { mail.textContent = copied; setTimeout(() => (mail.textContent = email), 2200); };
     const legacy = () => { if (copyLegacy(email)) done(); };
     if (navigator.clipboard) navigator.clipboard.writeText(email).then(done, legacy);
     else legacy();
