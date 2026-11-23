@@ -1,6 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <style>circle,path{stroke:#A3361F}@media (prefers-color-scheme:dark){circle,path{stroke:#E0694E}}</style>
-  <circle cx="16" cy="16" r="13.5" fill="none" stroke-width="2"/>
-  <path d="M16 0v4M16 28v4M0 16h4M28 16h4" stroke-width="1.6"/>
-  <path d="M10 16.5l4 4 8-9" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-label="andcom"><title>andcom</title><style>.l{fill:#0A0D13}.j0{stop-color:#0B8FA6}.j1{stop-color:#1E4FE0}.j2{stop-color:#6B2FC9}.j3{stop-color:#B8166F}@media (prefers-color-scheme:dark){.l{fill:#E9EDF5}.j0{stop-color:#2EE6FF}.j1{stop-color:#2E6BFF}.j2{stop-color:#9B4DFF}.j3{stop-color:#FF4DB8}}</style><defs><linearGradient id="joya" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="j0"/><stop offset="0.35" class="j1"/><stop offset="0.7" class="j2"/><stop offset="1" class="j3"/></linearGradient></defs><path class="l" d="M4 2 L10.414 2 L14 5.586 L14 11 L12 9 L5.414 9 L4 10.414 L4 10.586 L5.414 12 L9 12 L11 14 L4.586 14 L2 11.414 L2 9.586 L4.586 7 L12 7 L12 6.414 L9.586 4 L2 4Z"/><path fill="url(#joya)" d="M12 10 L14 12 L12 14 L10 12Z"/></svg>

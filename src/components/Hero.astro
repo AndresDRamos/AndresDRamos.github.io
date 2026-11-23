@@ -1,73 +1,437 @@
 ---
-import { Image } from "astro:assets";
-import portrait from "../assets/img/retrato.jpg";
-import Seal from "./Seal.astro";
+/*
+  Portada: la empresa como sistema nervioso. A la izquierda la promesa y el
+  problema; a la derecha la red viva (canvas propio, sin librerías) con un log
+  flotante que narra lo que pasa. Azul = señal, rojo = impulso crítico,
+  púrpura = sinapsis (punto de retorno). Con «reducir movimiento» se dibuja
+  una sola imagen fija.
+*/
 import { content, type Lang } from "../i18n/content";
 interface Props { lang: Lang }
 const { lang } = Astro.props;
-const t = content[lang].hero;
-const sealText = lang === "es" ? "arquitectura de datos · andcom · planeación ·" : "data architecture · andcom · plant planning ·";
+const ui = content[lang].ui;
+const h = content[lang].hero;
+const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels };
 ---
-<section class="panel hero" id="inicio" data-nav>
-  <div class="wrap" id="contenido">
-    <div class="top">
-      <div class="txt">
-        <p class="kicker" data-r style="--i:0">{t.kicker}</p>
-        <h1 data-r style="--i:1">{t.titleA} <em>{t.titleEm}</em></h1>
-        <p class="lead" data-r style="--i:2">{t.lead}</p>
-        <p class="body" data-r style="--i:3">{t.body}</p>
-        <div class="cta no-print" data-r style="--i:4">
-          <a class="btn" href="#arquitectura">{t.ctaPrimary}</a>
-          <a class="btn ghost" href="#contacto">{t.ctaSecondary}</a>
+<section class="panel hero" id="inicio" data-nav data-title={ui.panels.inicio}>
+  <canvas class="red" aria-hidden="true"></canvas>
+
+  <div class="cuerpo">
+    <div class="izq">
+      <div>
+        <p class="kicker" data-r><span class="vivo" aria-hidden="true"></span>{h.kicker}</p>
+        <h1 data-r style="--i:1">{h.titleA} <span class="glitch" data-t={h.titleEm}>{h.titleEm}</span></h1>
+        <p class="lead" data-r style="--i:2">{h.lead}<b>{h.leadEm}</b>{h.leadEnd}</p>
+        <div class="cta" data-r style="--i:3">
+          <a class="btn" href="#metodo">{h.ctaPrimary}</a>
+          <a class="btn ghost" href="#contacto">{h.ctaSecondary}</a>
         </div>
       </div>
-      <div class="portrait" data-r="s" style="--i:2">
-        <Image src={portrait} alt={t.portraitAlt} widths={[280, 420, 640, 840]} sizes="(max-width: 900px) 40vw, 420px" loading="eager" fetchpriority="high" />
-        <Seal uid="hero" text={sealText} class="hero-seal" />
+
+      <div class="problema" data-r style="--i:4">
+        <p class="num">{h.problem.num}</p>
+        <h2>{h.problem.title}</h2>
+        <p>{h.problem.body}</p>
+        <div class="franja">{h.strip.map((s) => <span>{s}</span>)}</div>
       </div>
     </div>
-    <ul class="pillars rail" data-r style="--i:5">
-      {t.pillars.map((p, i) => (
-        <li><span class="n">0{i + 1}</span><b>{p.k}</b><span>{p.t}</span></li>
-      ))}
-    </ul>
+
+    <div class="mapa">
+      <aside class="log cut-tr" aria-label={`${h.log.title} ${h.log.live}`}>
+        <div class="tit"><span>{h.log.title} · <span class="c-ink">{h.log.live}</span></span><span class="c-rojo reloj">00:00:00</span></div>
+        <div class="met">
+          <span>{h.log.areas} <b>{h.nodes.length}</b></span>
+          <span>{h.log.impulses} <b class="n-imp">0</b></span>
+          <span>{h.log.returns} <b>{h.returns.length}</b></span>
+        </div>
+        <ol class="eventos" aria-live="off"></ol>
+        <div class="ley">
+          <span><i class="c-acc">◆</i> {h.log.legend[0]}</span>
+          <span><i class="c-rojo">◆</i> {h.log.legend[1]}</span>
+          <span><i class="c-sin">◆</i> {h.log.legend[2]}</span>
+          <span class="c-ink">{h.log.legend[3]}</span>
+        </div>
+      </aside>
+    </div>
   </div>
+
+  <div class="ficha cut-tr" role="status"></div>
+  <script type="application/json" class="hero-data" set:html={JSON.stringify(data)} />
 </section>
 
 <style>
-  .top { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 96px); align-items: center; }
-  .txt { display: grid; gap: clamp(12px, 2.2vh, 22px); justify-items: start; }
-  h1 { font-size: min(clamp(2.2rem, .8rem + 3.5vw, 5rem), 9.2vh + 1rem); line-height: 1.04; letter-spacing: -.025em; }
-  h1 em { color: var(--seal); font-weight: 500; }
-  .lead { font: 600 clamp(1.1rem, .95rem + .6vw, 1.45rem)/1.35 var(--f-b); max-width: 44ch; }
-  .body { color: var(--muted); max-width: 62ch; }
-  .cta { margin-top: 6px; }
-  .portrait { position: relative; justify-self: center; width: min(100%, 420px, 44vh); aspect-ratio: 1; }
-  .portrait :global(img) { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
-  .portrait :global(.hero-seal) { position: absolute; right: -6%; bottom: -6%; width: 44%; }
+  .hero { padding: 0; align-content: stretch; grid-template-rows: minmax(0, 1fr); }
+  .hero::before { display: none; }
+  .red { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; display: block; }
+  .cuerpo { display: grid; grid-template-columns: minmax(0, 40fr) minmax(0, 60fr); height: 100%; min-height: 0; }
 
-  .pillars { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--ink); }
-  .pillars li { display: grid; gap: 4px; align-content: start; padding: clamp(12px, 2vh, 20px) clamp(14px, 1.6vw, 26px) 0; border-left: 1px solid var(--rule); }
-  .pillars li:first-child { border-left: 0; padding-left: 0; }
-  .n { font: 500 .8rem var(--f-m); color: var(--seal); }
-  .pillars b { font: 560 clamp(1.15rem, 1rem + .5vw, 1.5rem)/1.15 var(--f-d); }
-  .pillars li span:last-child { color: var(--muted); font-size: .95rem; line-height: 1.45; }
+  .izq { display: flex; flex-direction: column; justify-content: space-between; min-height: 0;
+    padding: clamp(16px, 5vh, 64px) var(--gutter) clamp(20px, 4vh, 44px); }
+  .kicker { display: flex; align-items: center; gap: 10px; }
+  .vivo { width: 8px; height: 8px; background: var(--red); display: inline-block; animation: latido 1.4s infinite; }
+  @keyframes latido { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  h1 { margin-top: clamp(14px, 2.4vh, 26px); font-weight: 600; font-size: clamp(2.8rem, min(6.2vw, 11vh), 6.4rem); line-height: .98; letter-spacing: -.04em; }
+  .glitch { position: relative; display: inline-block; color: var(--acc); }
+  .glitch::before, .glitch::after { content: attr(data-t); position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; }
+  .glitch::before { color: var(--red); animation: g1 7s infinite steps(1); }
+  .glitch::after { color: var(--ink); animation: g2 7s infinite steps(1); }
+  @keyframes g1 { 0%, 90%, 100% { opacity: 0; } 91% { opacity: .9; transform: translate(-4px, 1px); clip-path: inset(8% 0 58% 0); }
+    93% { opacity: .9; transform: translate(3px, -2px); clip-path: inset(62% 0 4% 0); } 95% { opacity: 0; } }
+  @keyframes g2 { 0%, 91%, 100% { opacity: 0; } 92% { opacity: .5; transform: translate(5px, 0); clip-path: inset(40% 0 35% 0); } 94% { opacity: 0; } }
+  .lead { margin-top: clamp(14px, 2.6vh, 28px); font-size: clamp(1rem, min(1.25vw, 2.3vh), 1.2rem); line-height: 1.6; color: var(--muted); max-width: 520px; }
+  .lead b { color: var(--ink); font-weight: 500; }
+  .cta { margin-top: clamp(18px, 3.4vh, 36px); }
 
-  @media (max-width: 900px) {
-    /* el retrato baja a miniatura junto al nombre; el titular ocupa todo el ancho */
-    .top { grid-template-columns: 76px minmax(0, 1fr); gap: 14px 14px; }
-    .txt { display: contents; }
-    .txt > * { grid-column: 1 / -1; }
-    .txt > .kicker { grid-column: 2; grid-row: 1; align-self: center; }
-    .portrait { grid-column: 1; grid-row: 1; width: 76px; }
-    .portrait :global(.hero-seal) { display: none; }
-    .cta { margin-top: 0; }
-    h1 { font-size: clamp(1.9rem, 8.6vw, 2.6rem); }
+  .problema { margin-top: clamp(18px, 3vh, 32px); padding-top: clamp(14px, 2.4vh, 22px); border-top: 1px solid var(--line); max-width: 540px; }
+  .problema .num { font: 500 .72rem/1 var(--f-m); color: var(--red); letter-spacing: .1em; text-transform: uppercase; }
+  .problema h2 { margin-top: 8px; font-size: clamp(1.05rem, min(1.45vw, 2.6vh), 1.4rem); line-height: 1.25; letter-spacing: -.015em; }
+  .problema p { margin-top: 8px; color: var(--muted); font-size: clamp(.85rem, min(1.05vw, 1.9vh), .98rem); line-height: 1.55; }
+  .franja { margin-top: clamp(12px, 2vh, 18px); font: 500 .7rem/1.3 var(--f-m); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap; }
+  .franja span::before { content: "◆ "; color: var(--acc); }
+
+  .mapa { position: relative; min-height: 0; }
+  .log { position: absolute; top: clamp(10px, 3vh, 34px); right: var(--gutter); width: 300px; font: 400 .7rem/1 var(--f-m); letter-spacing: .03em;
+    background: color-mix(in srgb, var(--bg2) 78%, transparent); border-left: 2px solid var(--acc); padding: 12px 14px 10px;
+    pointer-events: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+  .log .tit { display: flex; justify-content: space-between; color: var(--ink); text-transform: uppercase; letter-spacing: .08em; }
+  .log .met { margin-top: 6px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; text-transform: uppercase; letter-spacing: .06em; }
+  .log .met b { color: var(--ink); font-weight: 500; }
+  .eventos { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); height: calc(6 * 1.75em); overflow: hidden; }
+  .eventos :global(li) { line-height: 1.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); animation: entra .35s steps(3); }
+  .eventos :global(li:nth-child(n+4)) { opacity: .55; }
+  .eventos :global(li:nth-child(n+6)) { opacity: .3; }
+  .eventos :global(.h) { opacity: .7; margin-right: 8px; }
+  @keyframes entra { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+  .ley { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); display: grid; gap: 3px; color: var(--muted); line-height: 1.4; }
+
+  .ficha { position: absolute; z-index: 5; width: 290px; padding: 16px 18px; background: var(--bg2);
+    border-left: 2px solid var(--acc); pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .15s, transform .15s; }
+  .ficha.on { opacity: 1; transform: none; }
+  .ficha :global(h3) { font-size: .95rem; font-weight: 600; letter-spacing: -.01em; }
+  .ficha :global(.fila) { margin-top: 10px; font-size: .85rem; line-height: 1.45; }
+  .ficha :global(.et) { display: block; font: 500 .66rem/1.2 var(--f-m); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 2px; }
+
+  @media (max-width: 900px), (max-height: 560px) {
+    .cuerpo { grid-template-columns: 1fr; grid-template-rows: auto 64vh; height: auto; }
+    .log { width: auto; left: var(--gutter); }
+    .ley { display: none; }
   }
-  @media (max-width: 900px) and (max-height: 760px) { .body { display: none; } }
-  @media (max-width: 760px) {
-    .pillars { border-top: 0; }
-    .pillars li, .pillars li:first-child { border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px 16px; background: var(--paper); }
-  }
-  @media print { .top { grid-template-columns: 1fr 140px; } h1 { font-size: 26pt; } .portrait { width: 140px; } }
+  :global(html.quieto) .vivo, :global(html.quieto) .glitch::before, :global(html.quieto) .glitch::after { animation: none; }
 </style>
+
+<script>
+  type Nodo = { n: string; short?: string; today: string; withNet: string; x: number; y: number; z: number; f?: number };
+  type Arista = { a: number; b: number; ret: boolean; k: number; msg?: string };
+  type Impulso = { e: Arista; u: number; v: number; col: "blue" | "red"; tr: { x: number; y: number }[]; id: number | null };
+
+  const hero = document.querySelector<HTMLElement>(".hero");
+  if (hero) {
+    const cv = hero.querySelector<HTMLCanvasElement>(".red")!;
+    const ctx = cv.getContext("2d")!;
+    const mapa = hero.querySelector<HTMLElement>(".mapa")!;
+    const ficha = hero.querySelector<HTMLElement>(".ficha")!;
+    const lista = hero.querySelector<HTMLElement>(".eventos")!;
+    const nImp = hero.querySelector<HTMLElement>(".n-imp")!;
+    const relojEl = hero.querySelector<HTMLElement>(".reloj")!;
+    const joya = document.getElementById("joya");
+    const D = JSON.parse(hero.querySelector(".hero-data")!.textContent!);
+    const root = document.documentElement;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+    let motion = !reduce.matches, visible = true;
+    let W = 0, H = 0, t = 0, mx = 0, my = 0, tmx = 0, tmy = 0;
+    let M = { x: 0, y: 0, w: 0, h: 0 };
+    let C: Record<string, string> & { dark?: any } = {};
+
+    /* posiciones de las áreas en la red (x, y de -1 a 1; z = profundidad) */
+    const POS = [[-.9, .02, 1], [-.6, -.5, .85], [-.32, .1, 1.25], [-.1, -.72, .75], [.12, .3, 1.05], [.3, .82, .85], [.44, -.22, 1.15], [.66, .44, .95], [.9, -.04, 1]];
+    const NODES: Nodo[] = D.nodes.map((n: any, i: number) => ({ ...n, x: POS[i][0], y: POS[i][1], z: POS[i][2] }));
+    const EDGES: Arista[] = [[0,1],[1,2],[2,3],[2,4],[3,4],[4,5],[4,6],[6,7],[7,8]].map(([a, b], i) => ({ a, b, ret: false, k: (i % 2 ? 1 : -1) * .18 }));
+    const RETURNS: Arista[] = [[5, 2], [6, 4], [7, 1]].map(([a, b], i) => ({ a, b, ret: true, k: .42, msg: D.returns[i] }));
+    const ALL = EDGES.concat(RETURNS);
+    const salidas = (i: number) => EDGES.filter((e) => e.a === i);
+    const corto = (i: number) => NODES[i].short || NODES[i].n;
+
+    const imp: Impulso[] = [];
+    const motas: { x: number; y: number; z: number; vx: number; vy: number }[] = [];
+    const chispas: { x: number; y: number; v: number; s: number; dr: number; ph: number; top: number }[] = [];
+    const anillos: { n: number; r: number; a: number; col: string }[] = [];
+    let folio = 1040, silencioso = false;
+
+    /* ---------- log ---------- */
+    const t0 = performance.now();
+    const reloj = () => {
+      const s = Math.floor((performance.now() - t0) / 1000);
+      return [s / 3600, (s / 60) % 60, s % 60].map((v) => String(Math.floor(v)).padStart(2, "0")).join(":");
+    };
+    /* El log va a un ritmo legible: una línea cada RITMO ms como máximo. La red
+       produce más eventos de los que se alcanzan a leer, así que se encolan: los
+       retornos (sinapsis) tienen prioridad y los pedidos sobrantes se descartan.
+       Lo que hace el visitante con el cursor se escribe al instante. */
+    const RITMO = 2600;
+    const cola: { html: string; prio: boolean }[] = [];
+    let ultimo = 0;
+    const escribir = (html: string) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span class="h">${reloj()}</span>${html}`;
+      lista.prepend(li);
+      while (lista.children.length > 6) lista.lastElementChild!.remove();
+      ultimo = performance.now();
+    };
+    const log = (html: string, tipo: "normal" | "retorno" | "cursor" = "normal") => {
+      if (silencioso) return;
+      if (tipo === "cursor") { escribir(html); return; }
+      if (tipo === "retorno") cola.unshift({ html, prio: true });
+      else cola.push({ html, prio: false });
+      while (cola.length > 3) { const k = cola.findLastIndex((e) => !e.prio); cola.splice(k >= 0 ? k : cola.length - 1, 1); }
+    };
+    setInterval(() => {
+      if (!visible || !cola.length || performance.now() - ultimo < RITMO) return;
+      escribir(cola.shift()!.html);
+    }, 250);
+    const fmt = (s: string, k: string, v: string | number) => s.replace(`{${k}}`, String(v));
+
+    /* ---------- colores desde CSS ---------- */
+    const hex = (h: string) => { h = h.replace("#", ""); return [0, 2, 4].map((i) => parseInt(h.substr(i, 2), 16)); };
+    const rgba = (h: string, a: number) => { const [r, g, b] = hex(h); return `rgba(${r},${g},${b},${Math.max(0, Math.min(1, a))})`; };
+    function leerColores() {
+      const cs = getComputedStyle(root);
+      const g = (v: string) => cs.getPropertyValue(v).trim();
+      // «blue» = color principal (--acc, púrpura) y «purple» = sinapsis (--sin, magenta)
+      C = { bg: g("--bg"), ink: g("--ink"), blue: g("--acc"), red: g("--red"), purple: g("--sin") };
+      const [r, gg, b] = hex(C.bg);
+      C.dark = (r * .3 + gg * .59 + b * .11) / 255 < .5;
+    }
+
+    /* ---------- geometría: la red ocupa la columna del mapa ---------- */
+    const ancho = () => W >= 900 && H >= 560;
+    const lay = () => ({
+      cx: M.x + M.w * (ancho() ? .44 : .5), sx: M.w * (ancho() ? .4 : .42),
+      cy: M.y + M.h * (ancho() ? .55 : .6), sy: M.h * (ancho() ? .4 : .3),
+    });
+    function pos(nd: Nodo) {
+      const L = lay();
+      const sway = motion ? Math.sin(t * .0006 + nd.x * 3) * 5 * nd.z : 0;
+      return { x: L.cx + nd.x * L.sx + (nd.z - 1) * mx * 60, y: L.cy + nd.y * L.sy + (nd.z - 1) * my * 40 + sway };
+    }
+    function ctrl(e: Arista, p: { x: number; y: number }, q: { x: number; y: number }) {
+      const dx = q.x - p.x, dy = q.y - p.y, wob = motion ? Math.sin(t * .0009 + e.a) * .04 : 0;
+      return { x: (p.x + q.x) / 2 - dy * (e.k + wob), y: (p.y + q.y) / 2 + dx * (e.k + wob) };
+    }
+    function bez(p: any, c: any, q: any, u: number) {
+      const v = 1 - u;
+      return { x: v * v * p.x + 2 * v * u * c.x + u * u * q.x, y: v * v * p.y + 2 * v * u * c.y + u * u * q.y };
+    }
+
+    /* ---------- población ---------- */
+    function poblar() {
+      motas.length = 0; chispas.length = 0;
+      const n = Math.round(Math.min(170, (W * H) / 8500));
+      for (let i = 0; i < n; i++) motas.push({ x: Math.random() * W, y: Math.random() * H, z: .3 + Math.random() * .9, vx: (Math.random() - .5) * .12, vy: (Math.random() - .5) * .12 });
+      for (let i = 0; i < W / 9; i++) nuevaChispa(Math.random() * H);
+    }
+    function nuevaChispa(y?: number) {
+      const x = Math.random() < .7 ? M.x + Math.random() * M.w : Math.random() * W;
+      chispas.push({ x, y: y ?? H + 4, v: .25 + Math.random() * .9, s: 1 + Math.random() * 2.4, dr: (Math.random() - .5) * .5, ph: Math.random() * 6.28, top: H * (.05 + Math.random() * .5) });
+    }
+    function lanzarSenal(desde = 0, origen = "pedido") {
+      const ops = salidas(desde);
+      if (!ops.length) return;
+      const id = desde === 0 && origen === "pedido" ? ++folio : null;
+      imp.push({ e: ops[Math.floor(Math.random() * ops.length)], u: 0, v: .0035 + Math.random() * .003, col: "blue", tr: [], id });
+      if (id) log(`<i class="c-acc">◆</i> ${fmt(D.log.orderIn, "id", id)}`);
+      else if (origen === "cursor") log(`<i class="c-acc">◆</i> ${fmt(D.log.share, "area", corto(desde))}`, "cursor");
+    }
+    const lanzarCritico = () => imp.push({ e: RETURNS[Math.floor(Math.random() * RETURNS.length)], u: 0, v: .004, col: "red", tr: [], id: null });
+
+    /* ---------- simulación ---------- */
+    let tSenal = 0, tCrit = 1800;
+    function paso(dt: number) {
+      t += dt;
+      mx += (tmx - mx) * .05; my += (tmy - my) * .05;
+      tSenal -= dt; tCrit -= dt;
+      if (tSenal <= 0) { lanzarSenal(0); tSenal = 900 + Math.random() * 900; }
+      if (tCrit <= 0) { lanzarCritico(); tCrit = 2800 + Math.random() * 2400; }
+
+      for (let i = imp.length - 1; i >= 0; i--) {
+        const s = imp[i];
+        s.u += (s.v * dt) / 16;
+        if (s.u < 1) continue;
+        const nb = s.e.b;
+        if (s.col === "red") {
+          anillos.push({ n: nb, r: 0, a: 1, col: "purple" });
+          log(`<i class="c-sin">◆</i> ${s.e.msg}`, "retorno");
+          if (joya && !silencioso) { joya.classList.add("late"); setTimeout(() => joya.classList.remove("late"), 160); }
+        } else {
+          NODES[nb].f = 1;
+          const ops = salidas(nb);
+          if (ops.length) { s.e = ops[Math.floor(Math.random() * ops.length)]; s.u = 0; s.tr = []; continue; }
+          anillos.push({ n: nb, r: 0, a: .7, col: "blue" });
+          if (s.id) log(`<i class="c-acc">◆</i> ${fmt(D.log.orderOut, "id", s.id)}`);
+        }
+        imp.splice(i, 1);
+      }
+      for (let i = anillos.length - 1; i >= 0; i--) { const a = anillos[i]; a.r += dt * .06; a.a -= dt * .0011; if (a.a <= 0) anillos.splice(i, 1); }
+      NODES.forEach((nd) => { nd.f = Math.max(0, (nd.f || 0) - dt * .002); });
+      for (const m of motas) {
+        m.x += (m.vx * dt) / 16 * m.z; m.y += (m.vy * dt) / 16 * m.z;
+        if (m.x < -10) m.x = W + 10; if (m.x > W + 10) m.x = -10;
+        if (m.y < -10) m.y = H + 10; if (m.y > H + 10) m.y = -10;
+      }
+      if (chispas.length < W / 9 && Math.random() < .9) nuevaChispa();
+      for (let i = chispas.length - 1; i >= 0; i--) {
+        const q = chispas[i];
+        q.y -= (q.v * dt) / 16;
+        q.x += ((q.dr + Math.sin(t * .001 + q.ph) * .15) * dt) / 16;
+        if (q.y < q.top) chispas.splice(i, 1);
+      }
+    }
+
+    /* ---------- dibujo ---------- */
+    const cuadro = (x: number, y: number, s: number, col: string) => { ctx.fillStyle = col; ctx.fillRect(Math.round(x - s / 2), Math.round(y - s / 2), s, s); };
+    function rombo(x: number, y: number, s: number, col: string, stroke = false) {
+      ctx.beginPath(); ctx.moveTo(x, y - s); ctx.lineTo(x + s, y); ctx.lineTo(x, y + s); ctx.lineTo(x - s, y); ctx.closePath();
+      if (stroke) { ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke(); } else { ctx.fillStyle = col; ctx.fill(); }
+    }
+    let hoverIdx = -1;
+    function dibujar() {
+      const L = lay();
+      ctx.clearRect(0, 0, W, H);
+      /* claroscuro: una sola fuente de luz detrás de la red */
+      const lz = ctx.createRadialGradient(L.cx - mx * 30, L.cy - my * 20, 0, L.cx, L.cy, Math.max(W, H) * .6);
+      lz.addColorStop(0, rgba(C.blue, C.dark ? .16 : .1));
+      lz.addColorStop(.45, rgba(C.blue, C.dark ? .04 : .03));
+      lz.addColorStop(1, rgba(C.bg, 0));
+      ctx.fillStyle = lz; ctx.fillRect(0, 0, W, H);
+
+      for (const q of chispas) {
+        const a = Math.min(1, (q.y - q.top) / (H * .25)) * Math.min(1, (H - q.y) / 60 + .2);
+        cuadro(q.x, q.y, q.s, rgba(C.dark ? C.blue : C.ink, a * (C.dark ? .38 : .2)));
+      }
+      const R = 110;
+      for (let i = 0; i < motas.length; i++) {
+        const a = motas[i];
+        for (let j = i + 1; j < motas.length; j++) {
+          const b = motas[j], dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy;
+          if (d2 < R * R) {
+            ctx.strokeStyle = rgba(C.ink, (1 - Math.sqrt(d2) / R) * .07 * Math.min(a.z, b.z));
+            ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+          }
+        }
+      }
+      const cx = (tmx * .5 + .5) * W, cy = (tmy * .5 + .5) * H;
+      for (const m of motas) {
+        const cerca = Math.max(0, 1 - Math.hypot(m.x - cx, m.y - cy) / 180);
+        cuadro(m.x, m.y, Math.max(1, 2.2 * m.z), rgba(cerca > 0 ? C.blue : C.ink, (.18 + cerca * .7) * m.z));
+      }
+
+      const P = NODES.map(pos);
+      for (const e of ALL) {
+        const p = P[e.a], q = P[e.b], c = ctrl(e, p, q);
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.quadraticCurveTo(c.x, c.y, q.x, q.y);
+        if (e.ret) { ctx.setLineDash([3, 6]); ctx.strokeStyle = rgba(C.red, .45); ctx.lineWidth = 1.2; }
+        else { ctx.setLineDash([]); ctx.strokeStyle = rgba(C.ink, .22); ctx.lineWidth = 1.4; }
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      for (const s of imp) {
+        const p = P[s.e.a], q = P[s.e.b], pt = bez(p, ctrl(s.e, p, q), q, s.u);
+        s.tr.push(pt); if (s.tr.length > 14) s.tr.shift();
+        const col = s.col === "red" ? C.red : C.blue;
+        s.tr.forEach((k, i) => cuadro(k.x, k.y, 2 + i * .25, rgba(col, (i / s.tr.length) * .55)));
+        cuadro(pt.x, pt.y, 6, col);
+      }
+      for (const a of anillos) {
+        const p = P[a.n];
+        rombo(p.x, p.y, 10 + a.r, rgba(C[a.col], a.a), true);
+        if (a.col !== "blue") rombo(p.x, p.y, 9, rgba(C[a.col], a.a));
+      }
+      ctx.font = `500 ${W >= 900 ? 11.5 : 10.5}px "JetBrains Mono", monospace`;
+      ctx.textBaseline = "middle";
+      NODES.forEach((nd, i) => {
+        const p = P[i], s = 5 + nd.z * 3, hov = i === hoverIdx;
+        const niebla = Math.min(1, .45 + (nd.z - .7));
+        rombo(p.x, p.y, s + 6 + (nd.f || 0) * 6, rgba(C.blue, ((nd.f || 0) * .5 + (hov ? .5 : 0)) * niebla), true);
+        rombo(p.x, p.y, s, rgba(hov ? C.blue : C.ink, niebla));
+        ctx.fillStyle = rgba(C.ink, (hov ? 1 : .72) * niebla);
+        const izq = nd.x > .8;
+        ctx.textAlign = izq ? "right" : "left";
+        ctx.fillText(nd.n.toUpperCase(), p.x + (izq ? -(s + 10) : s + 10), p.y);
+      });
+      ctx.textAlign = "left";
+    }
+
+    /* ---------- interacción ---------- */
+    hero.addEventListener("pointermove", (ev) => {
+      const r = hero.getBoundingClientRect();
+      const x = ev.clientX - r.left, y = ev.clientY - r.top;
+      tmx = (x / W) * 2 - 1; tmy = (y / H) * 2 - 1;
+      let best = -1, bd = 34;
+      NODES.forEach((nd, i) => { const p = pos(nd), d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; best = i; } });
+      if (best !== hoverIdx) {
+        hoverIdx = best;
+        if (best >= 0) {
+          const nd = NODES[best];
+          ficha.innerHTML = `<h3>${nd.n}</h3><div class="fila"><span class="et c-rojo">${D.labels.today}</span>${nd.today}</div><div class="fila"><span class="et c-acc">${D.labels.withNet}</span>${nd.withNet}</div>`;
+          ficha.classList.add("on");
+          lanzarSenal(best, "cursor");
+        } else ficha.classList.remove("on");
+      }
+      if (hoverIdx >= 0) {
+        const p = pos(NODES[hoverIdx]);
+        ficha.style.left = Math.max(12, Math.min(W - 302, p.x + 24)) + "px";
+        ficha.style.top = Math.min(H - 170, Math.max(12, p.y + 18)) + "px";
+      }
+      hero.style.cursor = hoverIdx >= 0 ? "crosshair" : "";
+      if (!motion) dibujar();
+    });
+    hero.addEventListener("pointerleave", () => { tmx = tmy = 0; hoverIdx = -1; ficha.classList.remove("on"); if (!motion) dibujar(); });
+
+    /* ---------- ciclo ---------- */
+    function medir() {
+      const r = hero.getBoundingClientRect(), m = mapa.getBoundingClientRect();
+      const dpr = Math.min(2, devicePixelRatio || 1);
+      W = r.width; H = Math.max(r.height, hero.scrollHeight);
+      M = { x: m.left - r.left, y: m.top - r.top, w: m.width, h: m.height };
+      cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      poblar();
+    }
+    function cuadroFijo() {
+      imp.length = 0; anillos.length = 0;
+      const m = motion; motion = true; silencioso = true;
+      for (let i = 0; i < 260; i++) paso(16);
+      motion = m; silencioso = false;
+      dibujar();
+    }
+    let last = performance.now(), raf = 0;
+    function loop(now: number) {
+      const dt = Math.min(50, now - last); last = now;
+      paso(dt); dibujar();
+      raf = requestAnimationFrame(loop);
+    }
+    function arrancar() {
+      cancelAnimationFrame(raf);
+      root.classList.toggle("quieto", !motion);
+      if (!visible) return;
+      if (motion) { last = performance.now(); raf = requestAnimationFrame(loop); }
+      else cuadroFijo();
+    }
+    setInterval(() => { if (visible) { nImp.textContent = String(imp.length); relojEl.textContent = reloj(); } }, 500);
+
+    /* la animación solo corre mientras la portada está a la vista */
+    document.addEventListener("panel", (e) => {
+      const ver = (e as CustomEvent).detail === "inicio";
+      if (ver === visible) return;
+      visible = ver;
+      if (visible) { medir(); arrancar(); } else cancelAnimationFrame(raf);
+    });
+    reduce.addEventListener("change", () => { motion = !reduce.matches; arrancar(); });
+    new MutationObserver(() => { leerColores(); if (!motion) dibujar(); }).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { leerColores(); if (!motion) dibujar(); });
+    addEventListener("resize", () => { medir(); if (!motion) dibujar(); });
+
+    visible = hero.classList.contains("active") || !root.classList.contains("js");
+    leerColores(); medir(); arrancar();
+  }
+</script>

@@ -1,8 +1,12 @@
 @import "./tokens.css";
 
-*, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-padding-top: var(--hdr); }
-/* laptops de poca altura: todo el sistema tipográfico baja un paso para que cada panel quepa */
+/* regla de marca: nada redondeado y nada en cursiva */
+*, *::before, *::after { box-sizing: border-box; border-radius: 0 !important; }
+em, i, cite, var, dfn, address { font-style: normal; }
+
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: var(--hdr); scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
+/* laptops de poca altura: el sistema tipográfico baja un paso para que cada panel quepa */
 @media (min-width: 901px) and (max-height: 820px) { html { font-size: 93.75%; } }
 @media (min-width: 901px) and (max-height: 700px) { html { font-size: 87.5%; } }
 body {
@@ -11,32 +15,62 @@ body {
   color: var(--ink);
   font: 400 clamp(1rem, .94rem + .28vw, 1.125rem)/1.6 var(--f-b);
   font-feature-settings: "cv11", "ss03";
-  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 img { max-width: 100%; height: auto; }
 a { color: inherit; }
 button { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
-h1, h2, h3 { font-family: var(--f-d); font-weight: 560; margin: 0; text-wrap: balance; letter-spacing: -.015em; }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
+h1, h2, h3 { font-family: var(--f-b); font-weight: 600; margin: 0; text-wrap: balance; letter-spacing: -.025em; }
 p { margin: 0; text-wrap: pretty; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
 .wrap { width: min(100% - 2 * var(--gutter), var(--w)); margin-inline: auto; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.skip { position: fixed; left: 16px; top: -60px; background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 6px; z-index: 80; }
+.skip { position: fixed; left: 16px; top: -60px; background: var(--ink); color: var(--bg); padding: 8px 14px; z-index: 80; }
 .skip:focus { top: 12px; }
 
-/* etiqueta: sans en versalitas, legible a tamaño pequeño */
-.kicker { font: 600 .8rem/1.3 var(--f-b); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
-.chip { display: inline-block; font: 500 .8rem/1.2 var(--f-m); padding: 5px 9px; border: 1px solid var(--rule); border-radius: 4px; color: var(--muted); white-space: nowrap; }
+/* etiquetas tipo lectura de sensor */
+.kicker { font: 500 .75rem/1.3 var(--f-m); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.chip { display: inline-block; font: 500 .75rem/1.2 var(--f-m); padding: 5px 9px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.c-acc { color: var(--acc); } .c-rojo { color: var(--red); } .c-sin { color: var(--sin); } .c-ink { color: var(--ink); }
+
+/* esquina cortada: la firma de forma */
+.cut { clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
+.cut-tr { clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%); }
+
+/* botones */
 .btn {
-  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-  font: 600 1rem var(--f-b); padding: 13px 22px; border-radius: 999px;
-  background: var(--ink); color: var(--bg); text-decoration: none; border: 1px solid var(--ink);
-  transition: background .2s, border-color .2s, color .2s;
+  position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+  font: 500 .8rem/1 var(--f-m); letter-spacing: .06em; text-transform: uppercase; text-decoration: none;
+  padding: 15px 22px; border: 0; background: var(--acc-btn); color: #fff;
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  transition: filter .2s;
 }
-.btn.ghost { background: transparent; color: var(--ink); }
-.btn:hover { background: var(--seal); border-color: var(--seal); color: #fff; }
+.btn:hover { filter: brightness(1.15); }
+.btn.ghost { background: var(--line); color: var(--ink); }
+.btn.ghost::before { content: ""; position: absolute; inset: 1px; z-index: -1; background: var(--bg);
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
+.btn.ghost:hover { background: var(--acc-btn); filter: none; }
 .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* término con definición al pasar el cursor o enfocar */
+.term { position: relative; border-bottom: 1px dashed var(--acc); cursor: help; }
+.term::after {
+  content: attr(data-def); position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 20; width: min(300px, 70vw);
+  padding: 10px 12px; background: var(--bg2); border: 1px solid var(--line); border-left: 2px solid var(--acc); color: var(--ink);
+  box-shadow: 0 10px 28px rgb(0 0 0 / .22); /* se despega del fondo aunque esté sobre otro bloque --bg2 */
+  font: 400 .82rem/1.45 var(--f-b); letter-spacing: 0; text-transform: none;
+  opacity: 0; visibility: hidden; transform: translateY(4px); transition: opacity .15s, transform .15s, visibility .15s; pointer-events: none;
+}
+.term:hover::after, .term:focus::after { opacity: 1; visibility: visible; transform: none; }
+.term.der::after { left: auto; right: 0; }
+.term.abajo::after { bottom: auto; top: calc(100% + 8px); }
+
+/* claroscuro: una sola luz por panel */
+.panel::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 60% 70% at var(--lx, 75%) var(--ly, 45%), color-mix(in srgb, var(--acc) 12%, transparent), transparent 70%);
+}
 
 /* ── paneles ──
    Con JS el sitio es una sola pantalla fija: no hay scroll de página. Cada sección
@@ -44,31 +78,53 @@ p { margin: 0; text-wrap: pretty; }
    cuál se ve. Sin JS (o al imprimir) los paneles se apilan como una página normal. */
 main { padding-top: var(--hdr); }
 .panel {
-  min-height: calc(100dvh - var(--hdr)); padding: clamp(18px, 4vh, 48px) 0 clamp(18px, 4vh, 48px);
-  display: grid; align-content: center; position: relative;
+  min-height: calc(100dvh - var(--hdr)); padding: clamp(18px, 4vh, 48px) 0;
+  display: grid; align-content: center; position: relative; isolation: isolate;
 }
 .panel > .wrap { display: grid; gap: clamp(16px, 3.4vh, 40px); }
 .js, .js body { height: 100%; overflow: hidden; }
 .js main { position: fixed; inset: var(--hdr) 0 0 0; padding: 0; overflow: hidden; }
+/* Cambio de panel en dos tiempos para que nunca haya dos paneles encima:
+   el que sale se apaga rápido (.2 s) y el que entra empieza cuando el otro
+   ya casi no se ve (.14 s de espera). */
 .js .panel {
   position: absolute; inset: 0; min-height: 0;
   overflow-x: hidden; overflow-y: auto; scrollbar-width: none; /* red de seguridad en pantallas muy bajas */
-  opacity: 0; visibility: hidden; transform: translateX(56px);
-  transition: opacity .45s ease, transform .6s cubic-bezier(.2, .7, .2, 1), visibility .45s;
+  opacity: 0; visibility: hidden; transform: translateX(32px);
+  transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s;
 }
 .js .panel::-webkit-scrollbar { display: none; }
-.js .panel.past { transform: translateX(-56px); }
-.js .panel.active { opacity: 1; visibility: visible; transform: none; }
-.sec-h { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 clamp(14px, 2vw, 28px); align-items: baseline; }
-.sec-h .num { font: 500 clamp(1rem, 1.4vw, 1.25rem)/1 var(--f-m); color: var(--seal); }
-.sec-h h2 { font-size: clamp(1.9rem, 1.1rem + 2.2vw, 3.2rem); line-height: 1.05; }
-.sec-h p { grid-column: 2; color: var(--muted); margin-top: 8px; max-width: 96ch; }
+.js .panel.past { transform: translateX(-32px); }
+.js .panel.active {
+  opacity: 1; visibility: visible; transform: none;
+  transition: opacity .4s ease .14s, transform .55s cubic-bezier(.2, .7, .2, 1) .14s, visibility 0s;
+}
+/* la luz del claroscuro llega después del contenido: nunca se ve sola */
+.js .panel::before { opacity: 0; transition: opacity .2s; }
+.js .panel.active::before { opacity: 1; transition: opacity 1.2s ease .45s; }
+/* cambio dentro de un grupo (main.mismo, lo pone Header): es la misma página.
+   El panel no se desliza y la luz no se apaga; lo que se repite (espina, fondo,
+   bloques) queda en el mismo lugar, el texto viejo se apaga y el nuevo entra
+   con su [data-r]. */
+.js main.mismo .panel { transform: none; transition: opacity .15s ease, visibility 0s linear .15s; }
+.js main.mismo .panel.active, .js main.mismo .panel::before { transition: none; }
+/* glitch breve al entrar a un panel: solo en el título, nunca en el panel entero */
+.js .panel.active.glitch-in .sec-h h2 { animation: glitch-in .34s steps(1) .22s; }
+@keyframes glitch-in {
+  0% { transform: translateX(-5px); text-shadow: 3px 0 var(--red), -3px 0 var(--sin); clip-path: inset(0 0 45% 0); }
+  25% { transform: translateX(4px); text-shadow: -2px 0 var(--red), 2px 0 var(--sin); clip-path: inset(40% 0 0 0); }
+  50% { transform: translateX(-2px); text-shadow: 1px 0 var(--sin); clip-path: none; }
+  75%, 100% { transform: none; text-shadow: none; clip-path: none; }
+}
+
+.sec-h { display: grid; }
+.sec-h h2 { font-size: clamp(1.9rem, 1.1rem + 2.2vw, 3.3rem); line-height: 1.04; }
+.sec-h p { color: var(--muted); margin-top: 10px; max-width: 72ch; }
 
 /* carrusel horizontal en pantallas angostas: se desliza en vez de apilar */
 @media (max-width: 760px) {
   .panel { padding: 16px 0 14px; align-content: start; }
   .panel > .wrap { gap: 14px; }
-  .sec-h { gap: 0 10px; }
   .sec-h p { display: none; }
   .sec-h h2 { font-size: 1.6rem; }
   .rail {
@@ -84,7 +140,7 @@ main { padding-top: var(--hdr); }
 .js [data-r] { opacity: 0; transform: translateY(24px); transition: opacity .6s cubic-bezier(.2, .7, .2, 1), transform .6s cubic-bezier(.2, .7, .2, 1); }
 .js [data-r="x"] { transform: translateX(40px); }
 .js [data-r="s"] { transform: scale(.94); }
-.js .active [data-r] { opacity: 1; transform: none; transition-delay: calc(var(--i, 0) * 80ms + 120ms); }
+.js .active [data-r] { opacity: 1; transform: none; transition-delay: calc(var(--i, 0) * 80ms + 180ms); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -94,7 +150,7 @@ main { padding-top: var(--hdr); }
 /* impresión: no se imprime el sitio, sino el CV de una hoja (Cv.astro) */
 @media print {
   @page { size: letter; margin: 13mm 14mm; }
-  :root { --bg: #fff; --paper: #fff; --ink: #000; --muted: #333; --rule: #bbb; --mark: #eee; color-scheme: light; }
+  :root { --bg: #fff; --bg2: #fff; --ink: #000; --muted: #333; --line: #bbb; --acc: #6B2FC9; --acc-btn: #6B2FC9; color-scheme: light; }
   .js, .js body { height: auto; overflow: visible; }
   body { background: #fff; }
   .no-print, .hdr, main, .js main { display: none !important; }

@@ -1,34 +1,33 @@
 ---
 /*
-  Trayectoria sobre el "espacio modelo" CAD: siempre oscuro, con retícula que
-  sigue al cursor y coordenadas en vivo. A la izquierda la línea de tiempo; a la
-  derecha las láminas originales dibujadas en AutoCAD.
+  Trayectoria: de la celda robótica a la empresa conectada. A la izquierda la
+  línea de tiempo; a la derecha las láminas originales de distribución de celdas.
 */
 import { Image } from "astro:assets";
 import { content, type Lang } from "../i18n/content";
 import l1 from "../assets/img/layout-celda-transportador.png";
 import l2 from "../assets/img/layout-celdas-pems.png";
 import l3 from "../assets/img/layout-planta.png";
+import retrato from "../assets/img/retrato.jpg";
 interface Props { lang: Lang }
 const { lang } = Astro.props;
+const ui = content[lang].ui;
 const c = content[lang].career;
 const s = c.sheets;
 const imgs: Record<string, ImageMetadata> = { "layout-celda-transportador": l1, "layout-celdas-pems": l2, "layout-planta": l3 };
 const last = c.items.length - 1;
 ---
-<section class="panel cad" id="trayectoria" data-nav>
-  <div class="xh xh-h" aria-hidden="true"></div>
-  <div class="xh xh-v" aria-hidden="true"></div>
-  <div class="xh-box" aria-hidden="true"></div>
+<section class="panel trayectoria" id="trayectoria" data-nav data-title={ui.panels.trayectoria} style="--lx:25%;--ly:30%">
   <div class="wrap">
     <div class="cols">
       <div class="left">
         <header class="sec-h" data-r>
-          <span class="num">05</span>
           <h2>{c.title}</h2>
-          <p>{c.intro}</p>
         </header>
-        <p class="origin" data-r style="--i:1">{c.origin.lead}<em>{c.origin.em}</em>{c.origin.rest}</p>
+        <div class="quien" data-r style="--i:1">
+          <Image src={retrato} alt="Andrés D. Ramos Luna" widths={[160, 320]} sizes="96px" class="foto cut" />
+          <p class="origin">{c.origin.lead}<b>{c.origin.em}</b>{c.origin.rest}</p>
+        </div>
         <ol class="time rail" data-r style="--i:2">
           {c.items.map((it, i) => (
             <li class:list={{ cur: i === last }}>
@@ -49,9 +48,7 @@ const last = c.items.length - 1;
             </figure>
           ))}
         </div>
-        <div class="status" aria-hidden="true">
-          <span>{s.coords}</span><span class="xy">X 0.0000 · Y 0.0000</span><span class="hint">{s.hint}</span>
-        </div>
+        <p class="hint kicker">{s.hint}</p>
       </div>
     </div>
   </div>
@@ -62,103 +59,59 @@ const last = c.items.length - 1;
 </section>
 
 <style>
-  .cad { overflow: hidden; background-color: var(--cad-bg); color: var(--cad-ink); color-scheme: dark;
-    background-image:
-      linear-gradient(rgba(160,180,200,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(160,180,200,.12) 1px, transparent 1px),
-      linear-gradient(rgba(160,180,200,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(160,180,200,.05) 1px, transparent 1px);
-    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px; }
-  .wrap { position: relative; z-index: 1; }
   .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(24px, 4vw, 72px); align-items: stretch; }
   .left { display: grid; gap: clamp(14px, 2.4vh, 26px); align-content: center; }
-  .sec-h .num { color: var(--cad-cyan); }
-  .sec-h p { color: var(--cad-muted); }
-  .origin { font: 400 clamp(1.1rem, .9rem + .5vw, 1.35rem)/1.4 var(--f-d); }
-  .origin em { color: var(--cad-yellow); }
-  .time { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--cad-line); }
-  .time li { display: grid; grid-template-columns: 26px 86px 1fr; gap: 10px; align-items: baseline; padding: clamp(5px, .9vh, 9px) 0; border-bottom: 1px solid var(--cad-line); font-size: .94rem; line-height: 1.4; }
-  .rev { font: 500 .85rem var(--f-m); color: var(--cad-cyan); }
-  .date { font: 500 .82rem var(--f-m); color: var(--cad-muted); white-space: nowrap; }
-  .time li.cur { color: var(--cad-yellow); }
+  .quien { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; }
+  .quien :global(.foto) { width: clamp(64px, 7vw, 96px); height: clamp(64px, 7vw, 96px); object-fit: cover; filter: grayscale(1) contrast(1.05); }
+  .origin { font-size: clamp(1rem, .9rem + .4vw, 1.25rem); line-height: 1.45; }
+  .origin b { color: var(--acc); font-weight: 600; }
+  .time { border-top: 1px solid var(--line); }
+  .time li { display: grid; grid-template-columns: 24px 82px 1fr; gap: 10px; align-items: baseline; padding: clamp(5px, .9vh, 9px) 0; border-bottom: 1px solid var(--line); font-size: .92rem; line-height: 1.4; color: var(--muted); }
+  .rev { font: 500 .8rem var(--f-m); color: var(--acc); }
+  .date { font: 500 .78rem var(--f-m); white-space: nowrap; }
+  .time li.cur { color: var(--ink); }
+  .time li.cur .rev { color: var(--sin); }
 
-  /* en escritorio las láminas toman el alto de la columna de texto, no al revés */
   .right { position: relative; min-height: 0; }
-  .status { position: absolute; left: 0; right: 0; bottom: 0; }
-  .sheets { position: absolute; inset: 0 0 46px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1.7fr) minmax(0, 1fr); gap: 14px; min-height: 0; }
-  figure { margin: 0; border: 1px solid rgba(201,210,218,.55); background: #1B2128; display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; }
+  .sheets { position: absolute; inset: 0 0 34px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1.7fr) minmax(0, 1fr); gap: 12px; min-height: 0; }
+  .hint { position: absolute; left: 0; bottom: 0; }
+  figure { margin: 0; border: 1px solid var(--line); background: #1B2128; display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; }
   figure:first-child { grid-column: 1 / -1; }
   .zoom { all: unset; cursor: zoom-in; display: block; overflow: hidden; min-height: 110px; }
-  .zoom:focus-visible { outline: 2px solid var(--cad-yellow); outline-offset: -2px; }
+  .zoom:focus-visible { outline: 2px solid var(--acc); outline-offset: -2px; }
   .zoom :global(img) { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s; }
   .zoom:hover :global(img) { transform: scale(1.04); }
-  figcaption { display: grid; grid-template-columns: 1fr auto; border-top: 1px solid rgba(201,210,218,.55); font: 500 .8rem var(--f-m); letter-spacing: .04em; }
+  figcaption { display: grid; grid-template-columns: 1fr auto; border-top: 1px solid var(--line); font: 500 .74rem var(--f-m); letter-spacing: .04em; background: var(--bg2); }
   figcaption span { padding: 7px 12px; }
-  figcaption span + span { border-left: 1px solid rgba(201,210,218,.55); color: var(--cad-yellow); }
-  .status { display: flex; border: 1px solid var(--cad-line); font: 500 .78rem var(--f-m); color: var(--cad-muted); }
-  .status span { padding: 7px 12px; border-left: 1px solid var(--cad-line); white-space: nowrap; }
-  .status span:first-child { border-left: 0; color: var(--cad-cyan); }
-  .xy { font-variant-numeric: tabular-nums; min-width: 200px; }
-  .hint { margin-left: auto; }
-  /* retícula */
-  .xh { position: absolute; pointer-events: none; background: var(--cad-cyan); opacity: 0; transition: opacity .2s; z-index: 2; }
-  .xh-h { left: 0; right: 0; height: 1px; top: 0; }
-  .xh-v { top: 0; bottom: 0; width: 1px; left: 0; }
-  .xh-box { position: absolute; width: 12px; height: 12px; border: 1px solid var(--cad-cyan); pointer-events: none; opacity: 0; transform: translate(-50%, -50%); z-index: 2; }
-  .cad.on .xh { opacity: .35; }
-  .cad.on .xh-box { opacity: .9; }
-  dialog { border: 1px solid var(--cad-line); background: var(--cad-bg); color: var(--cad-ink); padding: 0; max-width: min(1200px, 94vw); }
-  dialog::backdrop { background: rgba(10, 14, 18, .82); }
+  figcaption span + span { border-left: 1px solid var(--line); color: var(--acc); }
+  dialog { border: 1px solid var(--line); background: var(--bg2); color: var(--ink); padding: 0; max-width: min(1200px, 94vw); }
+  dialog::backdrop { background: rgba(6, 7, 11, .85); }
   dialog img { display: block; max-width: 100%; max-height: 82vh; }
-  dialog form { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px; font: 500 .8rem var(--f-m); border-top: 1px solid var(--cad-line); }
-  dialog button { font: inherit; background: transparent; color: var(--cad-cyan); border: 1px solid var(--cad-cyan); padding: 4px 10px; cursor: pointer; }
+  dialog form { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px; font: 500 .78rem var(--f-m); border-top: 1px solid var(--line); }
+  dialog button { font: inherit; background: transparent; color: var(--acc); border: 1px solid var(--acc); padding: 4px 10px; cursor: pointer; }
 
   @media (max-width: 900px) {
     .cols { grid-template-columns: 1fr; }
     .right { display: grid; gap: 14px; }
-    .status { position: static; }
     .sheets { position: static; grid-template-rows: none; }
     figure, figure:first-child { grid-column: auto; }
     .zoom { aspect-ratio: 16 / 10; }
-    .xy { display: none; }
-    .status span { white-space: normal; }
+    .hint { position: static; }
   }
   @media (max-width: 760px) {
-    .left { gap: 12px; }
-    .origin { font-size: 1.02rem; line-height: 1.35; }
     .time { border-top: 0; grid-auto-columns: 62% !important; }
-    .time li { grid-template-columns: auto 1fr; align-content: start; gap: 4px 8px; padding: 10px 12px; border: 1px solid var(--cad-line); border-radius: 8px; background: rgba(27, 33, 40, .8); font-size: .88rem; }
+    .time li { grid-template-columns: auto 1fr; align-content: start; gap: 4px 8px; padding: 10px 12px; border: 1px solid var(--line); background: var(--bg2); font-size: .88rem; }
     .time li span:last-child { grid-column: 1 / -1; }
     .sheets { grid-auto-columns: 80% !important; }
-    .status { display: none; }
-  }
-  @media print {
-    .cad { background: none; color: #000; }
-    .cols { grid-template-columns: 1fr; }
-    .rev, .date, .sec-h .num, .origin em, .time li.cur { color: #000; }
   }
 </style>
 
 <script>
-  const cad = document.querySelector<HTMLElement>(".cad");
-  if (cad) {
-    const H = cad.querySelector<HTMLElement>(".xh-h")!, V = cad.querySelector<HTMLElement>(".xh-v")!;
-    const B = cad.querySelector<HTMLElement>(".xh-box")!, XY = cad.querySelector<HTMLElement>(".xy")!;
-    let raf = 0, x = 0, y = 0;
-    const paint = () => {
-      raf = 0;
-      H.style.transform = `translateY(${y}px)`; V.style.transform = `translateX(${x}px)`;
-      B.style.left = `${x}px`; B.style.top = `${y}px`;
-      XY.textContent = `X ${(x * 2.5).toFixed(4)} · Y ${((cad.clientHeight - y) * 2.5).toFixed(4)}`;
-    };
-    cad.addEventListener("pointermove", (e) => {
-      if (e.pointerType !== "mouse") return;
-      const r = cad.getBoundingClientRect(); x = e.clientX - r.left; y = e.clientY - r.top;
-      cad.classList.add("on"); if (!raf) raf = requestAnimationFrame(paint);
-    });
-    cad.addEventListener("pointerleave", () => cad.classList.remove("on"));
-
-    const dlg = cad.querySelector<HTMLDialogElement>(".dlg")!;
+  const tr = document.querySelector<HTMLElement>(".trayectoria");
+  if (tr) {
+    const dlg = tr.querySelector<HTMLDialogElement>(".dlg")!;
     const dimg = dlg.querySelector("img")!;
-    cad.querySelectorAll<HTMLButtonElement>(".zoom").forEach((b) => b.addEventListener("click", () => {
+    tr.querySelectorAll<HTMLButtonElement>(".zoom").forEach((b) => b.addEventListener("click", () => {
       const img = b.querySelector("img")!;
       dimg.src = img.dataset.full ?? img.currentSrc; dimg.alt = img.alt;
       dlg.querySelector(".cap")!.textContent = b.dataset.title ?? "";

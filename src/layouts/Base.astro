@@ -1,7 +1,5 @@
 ---
 import "@fontsource-variable/inter";
-import "@fontsource-variable/source-serif-4";
-import "@fontsource-variable/source-serif-4/wght-italic.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "../styles/global.css";
@@ -20,12 +18,12 @@ const person = {
   "@type": "Person",
   name: "Andrés D. Ramos Luna",
   alternateName: "andcom",
-  jobTitle: lang === "es" ? "Arquitecto de datos y consultor en planeación de producción" : "Data architect and production planning consultant",
+  jobTitle: lang === "es" ? "Consultor en flujo de información, datos e IA para cadena de suministro" : "Information-flow, data and AI consultant for supply chains",
   address: { "@type": "PostalAddress", addressLocality: "Monterrey", addressRegion: "N.L.", addressCountry: "MX" },
   alumniOf: "Universidad Autónoma de Nuevo León",
   url: canonical,
   sameAs: [CONTACT.github],
-  knowsAbout: ["Data architecture", "ETL", "Data warehousing", "Data governance", "MRP", "Finite capacity planning", "Supply chain", "SQL Server", "Azure SQL", "Python"],
+  knowsAbout: ["Value stream mapping", "Supply chain", "Data architecture", "Data integration", "Industrial IoT", "Telemetry", "AI assistants", "MRP", "Finite capacity planning", "Industrial automation"],
 };
 ---
 <!doctype html>
@@ -40,8 +38,8 @@ const person = {
   <link rel="alternate" hreflang="en" href={enUrl} />
   <link rel="alternate" hreflang="x-default" href={esUrl} />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <meta name="theme-color" content="#F2EEE5" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#15130F" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#E9EDF2" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#06070B" media="(prefers-color-scheme: dark)" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content={t.meta.title} />
   <meta property="og:description" content={t.meta.description} />

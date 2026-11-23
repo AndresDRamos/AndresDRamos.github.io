@@ -2,7 +2,8 @@
 /*
   Encabezado fijo y navegador principal: el sitio no se desplaza, cada enlace
   cambia la sección que ocupa la pantalla. En pantallas angostas es un menú
-  desplegable. Aquí vive el enrutador de paneles.
+  desplegable. Aquí vive el enrutador de paneles (enlaces, flechas, rueda y
+  botones de anterior/siguiente).
 */
 import { content, type Lang } from "../i18n/content";
 interface Props { lang: Lang }
@@ -12,7 +13,17 @@ const t = content[lang];
 <header class="hdr no-print" id="hdr">
   <div class="wrap bar">
     <a class="brand" href="#inicio" aria-label="andcom">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M16 0v4M16 28v4M0 16h4M28 16h4" stroke="currentColor" stroke-width="1.2"/><path d="M10 16.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <!-- símbolo «Joya» (bocetos/logo): la «a» es la red, el rombo es la sinapsis -->
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="joya-hdr" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" style="stop-color:var(--j0)" /><stop offset=".35" style="stop-color:var(--j1)" />
+            <stop offset=".7" style="stop-color:var(--j2)" /><stop offset="1" style="stop-color:var(--j3)" />
+          </linearGradient>
+        </defs>
+        <path fill="currentColor" d="M8.75 4.25 L19.725 4.25 L26.75 11.275 L26.75 22 L23.25 18.5 L23.25 17.75 L11.725 17.75 L8.75 20.725 L8.75 21.275 L11.725 24.25 L17.5 24.25 L21 27.75 L10.275 27.75 L5.25 22.725 L5.25 19.275 L10.275 14.25 L23.25 14.25 L23.25 12.725 L18.275 7.75 L5.25 7.75Z" />
+        <path class="joya" id="joya" fill="url(#joya-hdr)" d="M22.5 19.25 L26.75 23.5 L22.5 27.75 L18.25 23.5Z" />
+      </svg>
       <span>andcom</span>
     </a>
     <nav id="nav" aria-label={t.ui.sections}>
@@ -27,41 +38,68 @@ const t = content[lang];
   <span class="prog" aria-hidden="true"></span>
 </header>
 
+<div class="pager no-print" id="pager">
+  <button type="button" id="prev" aria-label={t.ui.prev}>←</button>
+  <span class="pos" id="pos" aria-hidden="true">01 / 08</span>
+  <button type="button" id="next" class="nx"><span class="lbl">{t.ui.next}</span> <b id="next-name"></b> →</button>
+</div>
+
 <style>
   .hdr { position: fixed; inset: 0 0 auto 0; z-index: 60; height: var(--hdr);
-    background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    border-bottom: 1px solid var(--rule); }
+    background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); }
   .bar { height: 100%; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: clamp(12px, 2vw, 32px); }
-  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 600 1.4rem/1 var(--f-d); letter-spacing: -.01em; }
-  .brand svg { width: 28px; height: 28px; color: var(--seal); }
-  nav { display: flex; justify-content: center; gap: clamp(2px, .8vw, 10px); }
-  nav a { position: relative; text-decoration: none; font: 500 .95rem/1 var(--f-b); color: var(--muted); padding: 10px clamp(8px, 1vw, 14px); border-radius: 999px; transition: color .2s, background .2s; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 800 1.2rem/1 var(--f-b); letter-spacing: -.02em; }
+  .brand svg { width: 30px; height: 30px; overflow: visible; }
+  .joya { transform-box: fill-box; transform-origin: center; transition: transform .5s cubic-bezier(.2, .8, .2, 1), filter .5s; }
+  :global(.joya.late) { transform: scale(1.3); filter: brightness(1.35); transition-duration: .12s; }
+  nav { display: flex; justify-content: center; gap: clamp(2px, 1.2vw, 18px); }
+  nav a { position: relative; text-decoration: none; font: 500 .74rem/1 var(--f-m); letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); padding: 10px 4px; transition: color .2s; }
+  nav a::after { content: ""; position: absolute; left: 4px; right: 4px; bottom: 2px; height: 2px; background: var(--acc); transform: scaleX(0); transform-origin: left; transition: transform .3s; }
   nav a:hover { color: var(--ink); }
-  nav a[aria-current="true"] { color: var(--ink); background: var(--mark); }
+  nav a[aria-current="true"] { color: var(--ink); }
+  nav a[aria-current="true"]::after { transform: none; }
   .tools { display: flex; gap: 8px; }
-  .tog { font: 600 .82rem/1.2 var(--f-b); letter-spacing: .04em; background: transparent; color: var(--ink);
-    border: 1px solid var(--rule); border-radius: 999px; padding: 8px 13px; cursor: pointer; text-decoration: none; }
-  .tog:hover { border-color: var(--ink); }
+  .tog { font: 500 .74rem/1.2 var(--f-m); letter-spacing: .06em; background: transparent; color: var(--ink);
+    border: 1px solid var(--line); padding: 8px 12px; cursor: pointer; text-decoration: none; }
+  .tog:hover { border-color: var(--acc); }
   .burger { display: none; }
-  /* posición dentro del recorrido de secciones */
-  .prog { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--seal); transform-origin: left; transform: scaleX(var(--p, 0)); transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+  .prog { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--acc); transform-origin: left; transform: scaleX(var(--p, 0)); transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
 
-  @media (max-width: 980px) {
+  /* anterior / siguiente: sustituye al scroll */
+  .pager { position: fixed; right: var(--gutter); bottom: 18px; z-index: 50; display: flex; align-items: stretch; gap: 6px; font: 500 .74rem/1 var(--f-m); letter-spacing: .06em; text-transform: uppercase; }
+  .pager button { background: color-mix(in srgb, var(--bg2) 85%, transparent); color: var(--ink); border: 1px solid var(--line); padding: 10px 14px; cursor: pointer; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+  .pager button:hover { border-color: var(--acc); color: var(--acc); }
+  .pager button[disabled] { opacity: .35; cursor: default; }
+  .pager .nx { text-align: right; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); }
+  .pager .nx b { font-weight: 500; color: var(--acc); }
+  .pos { display: grid; place-items: center; padding: 0 8px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pager.end .nx { visibility: hidden; } /* ocupa su lugar: los otros botones no se recorren */
+
+  @media (max-width: 1100px) {
     .bar { grid-template-columns: 1fr auto; }
     .burger { display: inline-block; }
     .burger[aria-expanded="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
     nav { position: fixed; inset: var(--hdr) 0 auto 0; flex-direction: column; gap: 0; padding: 8px var(--gutter) 20px;
-      background: var(--bg); border-bottom: 1px solid var(--rule); box-shadow: 0 24px 40px -24px rgba(0, 0, 0, .35);
+      background: var(--bg); border-bottom: 1px solid var(--line);
       opacity: 0; visibility: hidden; transform: translateY(-10px); transition: opacity .25s, transform .25s, visibility .25s; }
-    .hdr.open nav { opacity: 1; visibility: visible; transform: none; }
-    nav a { font: 560 1.5rem/1.2 var(--f-d); color: var(--ink); padding: 14px 0; border-radius: 0; border-bottom: 1px solid var(--rule); }
-    nav a[aria-current="true"] { background: none; color: var(--seal); }
+    :global(.hdr.open) nav { opacity: 1; visibility: visible; transform: none; }
+    nav a { font: 600 1.4rem/1.2 var(--f-b); letter-spacing: -.02em; text-transform: none; color: var(--ink); padding: 14px 0; border-bottom: 1px solid var(--line); }
+    nav a::after { display: none; }
+    nav a[aria-current="true"] { color: var(--acc); }
+  }
+  @media (max-width: 760px) {
+    .pager { left: var(--gutter); right: var(--gutter); bottom: 10px; }
+    .pager .nx { flex: 1; justify-content: flex-end; }
+    .pager .lbl { display: none; }
   }
 </style>
 
 <script>
   const root = document.documentElement;
   const hdr = document.getElementById("hdr")!;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
 
   /* tema */
   document.getElementById("theme")?.addEventListener("click", () => {
@@ -81,23 +119,64 @@ const t = content[lang];
   /* ── enrutador de paneles: el encabezado decide qué sección ocupa la pantalla ── */
   const panels = [...document.querySelectorAll<HTMLElement>("[data-nav]")];
   const links = new Map([...hdr.querySelectorAll<HTMLAnchorElement>("nav a")].map((a) => [a.dataset.to!, a]));
+  const pager = document.getElementById("pager")!;
+  const prev = document.getElementById("prev") as HTMLButtonElement;
+  const next = document.getElementById("next") as HTMLButtonElement;
+  const nextName = document.getElementById("next-name")!;
+  const pos = document.getElementById("pos")!;
+  const main = document.querySelector("main");
+  const pad = (n: number) => String(n).padStart(2, "0");
   let cur = -1;
+  /* «Siguiente» mide siempre lo del nombre más largo: si cambiara de ancho con
+     cada panel, el botón (y los de al lado) se recorrería bajo el cursor */
+  let anchoSig = 0;
+  function fijarSiguiente() {
+    if (anchoSig || !next.offsetWidth) return;
+    const actual = nextName.textContent;
+    next.style.minWidth = "";
+    for (const p of panels) { nextName.textContent = p.dataset.title ?? ""; anchoSig = Math.max(anchoSig, next.offsetWidth); }
+    nextName.textContent = actual;
+    next.style.minWidth = `${anchoSig}px`;
+  }
+  const remedir = () => { anchoSig = 0; fijarSiguiente(); };
+  addEventListener("resize", remedir);
+  document.fonts?.ready.then(remedir);
   function go(i: number, updateHash = true) {
     if (i < 0 || i >= panels.length || i === cur) return;
+    const first = cur === -1;
+    /* dentro de un mismo grupo (las etapas del método) no se cambia de página:
+       solo entran los textos nuevos; ver .mismo en global.css */
+    const g = panels[i].dataset.grupo;
+    const mismo = !first && !!g && panels[cur]?.dataset.grupo === g;
+    main?.classList.toggle("mismo", mismo);
     cur = i;
     panels.forEach((p, k) => {
       p.classList.toggle("active", k === i);
       p.classList.toggle("past", k < i);
       p.toggleAttribute("inert", k !== i);
+      p.classList.remove("glitch-in");
     });
-    panels[i].scrollTop = 0;
-    links.forEach((a, id) => id === panels[i].id ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
+    const p = panels[i];
+    p.scrollTop = 0;
+    /* sin glitch dentro del mismo grupo: el título que se acaba de pulsar no se sacude */
+    if (!first && !mismo && !reduce.matches) { void p.offsetWidth; p.classList.add("glitch-in"); }
+    /* el panel de arquitectura es parte del caso: marca «Caso» en el menú */
+    const navId = p.dataset.parent ?? p.id;
+    links.forEach((a, id) => id === navId ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
     hdr.style.setProperty("--p", String((i + 1) / panels.length));
-    if (updateHash) history.replaceState(null, "", i === 0 ? location.pathname : `#${panels[i].id}`);
+    prev.disabled = i === 0;
+    pager.classList.toggle("end", i === panels.length - 1);
+    nextName.textContent = panels[i + 1]?.dataset.title ?? "";
+    pos.textContent = `${pad(i + 1)} / ${pad(panels.length)}`;
+    fijarSiguiente();
+    document.dispatchEvent(new CustomEvent("panel", { detail: p.id }));
+    if (updateHash) history.replaceState(null, "", i === 0 ? location.pathname : `#${p.id}`);
   }
   const indexOf = (hash: string) => panels.findIndex((p) => `#${p.id}` === hash);
   go(Math.max(0, indexOf(location.hash)), false);
   addEventListener("hashchange", () => { const i = indexOf(location.hash); if (i >= 0) go(i, false); });
+  prev.addEventListener("click", () => go(cur - 1));
+  next.addEventListener("click", () => go(cur + 1));
 
   /* cualquier enlace interno a una sección cambia de panel en vez de desplazar */
   document.addEventListener("click", (e) => {
@@ -117,4 +196,45 @@ const t = content[lang];
     if (e.key === "ArrowRight" || e.key === "PageDown") go(cur + 1);
     else if (e.key === "ArrowLeft" || e.key === "PageUp") go(cur - 1);
   });
+
+  /* rueda o trackpad: un gesto = un panel. Si el panel tiene contenido que aún
+     puede desplazarse (pantallas muy bajas), primero se desplaza ese contenido. */
+  let lock = 0, acc = 0;
+  addEventListener("wheel", (e) => {
+    if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+    const p = panels[cur];
+    const down = e.deltaY > 0;
+    const canScroll = down ? p.scrollTop + p.clientHeight < p.scrollHeight - 2 : p.scrollTop > 2;
+    if (canScroll) return;
+    const now = performance.now();
+    if (now < lock) return;
+    acc += e.deltaY;
+    if (Math.abs(acc) < 40) return;
+    acc = 0; lock = now + 900;
+    go(cur + (down ? 1 : -1));
+  }, { passive: true });
+
+  /* definiciones del glosario: se abren hacia donde haya espacio */
+  const lado = (e: Event) => {
+    const t = (e.target as HTMLElement).closest<HTMLElement>(".term");
+    if (!t) return;
+    const r = t.getBoundingClientRect();
+    t.classList.toggle("der", r.left > innerWidth - 320);
+    t.classList.toggle("abajo", r.top < 170);
+  };
+  document.addEventListener("pointerover", lado);
+  document.addEventListener("focusin", lado);
+
+  /* deslizar con el dedo en celular */
+  let ty = 0, tx = 0;
+  addEventListener("touchstart", (e) => { ty = e.touches[0].clientY; tx = e.touches[0].clientX; }, { passive: true });
+  addEventListener("touchend", (e) => {
+    const dy = ty - e.changedTouches[0].clientY, dx = tx - e.changedTouches[0].clientX;
+    if (Math.abs(dy) < 70 || Math.abs(dy) < Math.abs(dx) * 1.5) return;
+    if ((e.target as HTMLElement).closest(".rail")) return;
+    const p = panels[cur];
+    const down = dy > 0;
+    const canScroll = down ? p.scrollTop + p.clientHeight < p.scrollHeight - 2 : p.scrollTop > 2;
+    if (!canScroll) go(cur + (down ? 1 : -1));
+  }, { passive: true });
 </script>
