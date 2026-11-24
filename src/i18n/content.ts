@@ -17,7 +17,7 @@ type Station = { tag: string; node: string; sub: string; what: string; why: stri
 export interface Content {
   meta: { title: string; description: string };
   nav: { id: string; label: string }[];
-  ui: { theme: string; langSwitch: string; langHref: string; skip: string; print: string; copied: string; menu: string;
+  ui: { theme: string; pause: string; langName: string; langSwitch: string; langHref: string; skip: string; print: string; copied: string; menu: string; closeMenu: string; swipe: string; showing: string; stage: string; areasTitle: string; tapHint: string;
     sections: string; next: string; prev: string; panels: Record<string, string> };
   hero: {
     kicker: string; titleA: string; titleEm: string; lead: string; leadEm: string; leadEnd: string;
@@ -67,8 +67,9 @@ const es: Content = {
     { id: "contacto", label: "Contacto" },
   ],
   ui: {
-    theme: "Cambiar tema claro u oscuro", langSwitch: "EN", langHref: "/en/",
-    skip: "Saltar al contenido", print: "Imprimir CV", copied: "Correo copiado ✓", menu: "Menú", sections: "Secciones",
+    theme: "Tema oscuro", pause: "Pausar animaciones", langName: "English version", langSwitch: "EN", langHref: "/en/",
+    skip: "Saltar al contenido", print: "Imprimir CV", copied: "Correo copiado ✓", menu: "Menú", closeMenu: "Cerrar", swipe: "Desliza", showing: "Mostrando: ", stage: "Etapa {n} de {t}",
+    areasTitle: "Qué cambia en cada área", tapHint: "› toca un área para ver qué cambia", sections: "Secciones",
     next: "Siguiente", prev: "Anterior",
     panels: { inicio: "Inicio", metodo: "Primeros pasos", laboratorio: "Pruebas", implementar: "Entrega", arquitectura: "Arquitectura", principios: "Principios", trayectoria: "Trayectoria", contacto: "Contacto" },
   },
@@ -246,7 +247,7 @@ const es: Content = {
       { rev: "H", date: "nov 2026", text: "andcom: consultoría en flujo de información, datos e IA para cadena de suministro." },
     ],
     sheets: {
-      hint: "Toca una lámina para ampliarla", close: "Cerrar · Esc",
+      hint: "Toca una lámina para ampliarla", close: "Cerrar",
       items: [
         { file: "layout-celda-transportador", title: "Celda con transportador", code: "L-01", alt: "Vista de planta de una celda robótica con transportador en U, tarimas y montacargas" },
         { file: "layout-celdas-pems", title: "Tres celdas en línea", code: "L-02", alt: "Tres celdas robóticas con su envolvente de trabajo alrededor de una línea" },
@@ -302,8 +303,9 @@ const en: Content = {
     { id: "contacto", label: "Contact" },
   ],
   ui: {
-    theme: "Toggle light or dark theme", langSwitch: "ES", langHref: "/",
-    skip: "Skip to content", print: "Print résumé", copied: "Email copied ✓", menu: "Menu", sections: "Sections",
+    theme: "Dark theme", pause: "Pause animations", langName: "Versión en español", langSwitch: "ES", langHref: "/",
+    skip: "Skip to content", print: "Print résumé", copied: "Email copied ✓", menu: "Menu", closeMenu: "Close", swipe: "Swipe up", showing: "Showing: ", stage: "Stage {n} of {t}",
+    areasTitle: "What changes in each area", tapHint: "› tap an area to see what changes", sections: "Sections",
     next: "Next", prev: "Previous",
     panels: { inicio: "Home", metodo: "First steps", laboratorio: "Testing", implementar: "Delivery", arquitectura: "Architecture", principios: "Principles", trayectoria: "Background", contacto: "Contact" },
   },
@@ -481,7 +483,7 @@ const en: Content = {
       { rev: "H", date: "Nov 2026", text: "andcom: information-flow, data and AI consulting for supply chains." },
     ],
     sheets: {
-      hint: "Tap a drawing to enlarge it", close: "Close · Esc",
+      hint: "Tap a drawing to enlarge it", close: "Close",
       items: [
         { file: "layout-celda-transportador", title: "Cell with conveyor", code: "L-01", alt: "Plan view of a robotic cell with a U-shaped conveyor, pallets and forklifts" },
         { file: "layout-celdas-pems", title: "Three cells in line", code: "L-02", alt: "Three robotic cells with their work envelopes along a line" },

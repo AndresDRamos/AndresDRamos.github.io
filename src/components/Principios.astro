@@ -15,7 +15,7 @@ const p = content[lang].principles;
       <h2>{p.title}</h2>
       <p>{p.intro}</p>
     </header>
-    <ul class="cards rail">
+    <ul class="cards">
       {p.items.map((it, i) => (
         <li class="card cut" data-r style={`--i:${i + 1}`}>
           <span class="k"><span class="n">{String(i + 1).padStart(2, "0")}</span>{it.k}</span>
@@ -36,4 +36,33 @@ const p = content[lang].principles;
   .n { color: var(--acc); }
   h3 { font-size: clamp(1.35rem, 1rem + 1.2vw, 2.2rem); line-height: 1.08; letter-spacing: -.03em; }
   .card p { color: var(--muted); font-size: clamp(.98rem, .9rem + .3vw, 1.15rem); line-height: 1.5; max-width: 46ch; }
+
+  /* celular: las cuatro tarjetas son cortas; apiladas se leen de un vistazo
+     (en carrusel se veía una sola, recortada, y las demás quedaban ocultas) */
+  @media (max-width: 760px) {
+    .cards { grid-template-columns: 1fr; gap: 10px; }
+    .card { gap: 6px; padding: 16px 18px; }
+    .k { font-size: .75rem; }
+    h3 { font-size: 1.3rem; }
+    .card p { font-size: .98rem; max-width: none; }
+  }
+
+  /* celular (html.movil, lo pone Base.astro): las cuatro en una pantalla, en
+     rejilla de 2×2 con tarjetas compactas. La etiqueta puede partirse en dos
+     renglones; el número queda arriba para que las cuatro alineen. */
+  :global(html.movil) .wrap { gap: 14px; }
+  :global(html.movil) .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  :global(html.movil) .card { --cut: 10px; gap: 6px; padding: 12px 12px 14px; }
+  :global(html.movil) .k { display: grid; gap: 4px; font-size: .75rem; line-height: 1.2; letter-spacing: .06em; }
+  :global(html.movil) h3 { font-size: 1.02rem; line-height: 1.2; letter-spacing: -.02em; }
+  :global(html.movil) .card p { font-size: .86rem; line-height: 1.4; max-width: none; }
+  :global(html.movil) .sec-h p { margin-top: 6px; line-height: 1.45; }
+  /* teléfonos de 320 px: un paso más chico (texto ≥12 px) */
+  @media (max-width: 359px) {
+    :global(html.movil) .sec-h p { font-size: .9rem; }
+    :global(html.movil) .card { gap: 5px; padding: 10px 10px 12px; }
+    :global(html.movil) .k { letter-spacing: .03em; }
+    :global(html.movil) h3 { font-size: .95rem; }
+    :global(html.movil) .card p { font-size: .8rem; line-height: 1.35; }
+  }
 </style>

@@ -17,10 +17,11 @@ const c = content[lang];
         <h2 data-r style="--i:1">{c.contact.title}</h2>
         <p data-r style="--i:2">{c.contact.body}</p>
         <div class="cta" data-r style="--i:3">
-          <a class="btn" id="mail" href={`mailto:${CONTACT.email}`} data-email={CONTACT.email} data-copied={c.ui.copied} aria-live="polite">{CONTACT.email}</a>
+          <a class="btn" id="mail" href={`mailto:${CONTACT.email}`} data-email={CONTACT.email} data-copied={c.ui.copied}>{CONTACT.email}</a>
           <a class="btn ghost no-print" href={CONTACT.github} target="_blank" rel="noopener">GitHub</a>
           <button class="btn ghost no-print" type="button" id="print">{c.ui.print}</button>
         </div>
+        <span class="sr-only" role="status" id="mail-st"></span>
       </div>
       <div class="simbolo" data-r="s" style="--i:2" aria-hidden="true">
         <svg viewBox="0 0 32 32">
@@ -51,7 +52,38 @@ const c = content[lang];
   .gema { transform-box: fill-box; transform-origin: center; animation: gema 3s ease-out infinite; }
   @keyframes gema { 0%, 60%, 100% { transform: scale(1); filter: none; } 66% { transform: scale(1.22); filter: brightness(1.3); } }
   footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 18px 0 56px; border-top: 1px solid var(--line); font: 500 .74rem var(--f-m); letter-spacing: .04em; color: var(--muted); }
-  @media (max-width: 760px) { .main { grid-template-columns: 1fr; } .simbolo { width: 110px; order: -1; } }
+  /* celular: título y botones primero (a ancho completo, uno bajo otro); el
+     símbolo queda chico al final porque el encabezado ya muestra el logo */
+  @media (max-width: 760px) {
+    .main { grid-template-columns: 1fr; gap: 28px; }
+    .simbolo { width: 72px; }
+    .cta { flex-direction: column; justify-self: stretch; gap: 10px; }
+    .cta .btn { justify-content: center; min-height: 48px; }
+    footer { padding: 18px 0 calc(24px + env(safe-area-inset-bottom)); font-size: .75rem; }
+  }
+  /* celular: un paso arriba de los títulos de sección (es el cierre), no el doble */
+  @media (max-width: 760px) { h2 { font-size: clamp(2rem, 1.4rem + 3vw, 2.4rem); } }
+  /* modo celular (html.movil): todo en una pantalla sin desplazar. Ya no hay
+     barra inferior, así que el pie no necesita el margen grande de abajo. */
+  :global(html.movil) .contact > .wrap { gap: 18px; }
+  :global(html.movil) .main { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  :global(html.movil) .txt { gap: 14px; }
+  :global(html.movil) .txt p { font-size: 1rem; line-height: 1.5; }
+  :global(html.movil) .cta { display: flex; flex-direction: column; justify-self: stretch; gap: 8px; }
+  :global(html.movil) .cta .btn { justify-content: center; min-height: 46px; }
+  :global(html.movil) .simbolo { width: 44px; }
+  :global(html.movil) footer { padding: 12px 0 env(safe-area-inset-bottom); font-size: .75rem; }
+  /* pantallas bajas (iPhone SE): el símbolo pasa arriba a la derecha, junto al
+     rótulo, y no suma alto; los botones quedan en el mínimo táctil de 44 px */
+  @media (max-height: 620px) {
+    :global(html.movil) .main { position: relative; }
+    :global(html.movil) .simbolo { position: absolute; top: 0; right: 0; width: 32px; }
+    :global(html.movil) .txt { gap: 10px; }
+    :global(html.movil) .txt p { font-size: .95rem; line-height: 1.45; }
+    :global(html.movil) .cta { gap: 6px; }
+    :global(html.movil) .cta .btn { min-height: 44px; }
+    :global(html.movil) .contact > .wrap { gap: 12px; }
+  }
 </style>
 
 <script>
@@ -60,6 +92,7 @@ const c = content[lang];
   /* mailto: no hace nada si el visitante no tiene app de correo configurada;
      además de intentar abrirla, el clic copia la dirección y lo avisa en el botón */
   const mail = document.getElementById("mail") as HTMLAnchorElement | null;
+  const st = document.getElementById("mail-st");
   const copyLegacy = (text: string) => {
     const t = Object.assign(document.createElement("textarea"), { value: text });
     t.style.cssText = "position:fixed;opacity:0";
@@ -71,7 +104,11 @@ const c = content[lang];
   };
   mail?.addEventListener("click", () => {
     const { email = "", copied = "" } = mail.dataset;
-    const done = () => { mail.textContent = copied; setTimeout(() => (mail.textContent = email), 2200); };
+    const done = () => {
+      mail.textContent = copied;
+      if (st) st.textContent = copied.replace(/\s*✓$/, ""); // aviso para lector de pantalla, sin leer «marca de verificación»
+      setTimeout(() => { mail.textContent = email; if (st) st.textContent = ""; }, 2200);
+    };
     const legacy = () => { if (copyLegacy(email)) done(); };
     if (navigator.clipboard) navigator.clipboard.writeText(email).then(done, legacy);
     else legacy();

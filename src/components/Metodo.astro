@@ -10,40 +10,68 @@
   Los términos del glosario se subrayan dentro de los párrafos.
   Entre etapas es la misma página: la espina, la luz y el bloque derecho se
   quedan quietos y solo entran los textos (data-grupo="metodo"; ver Header).
+  Celular (html.movil): cada etapa cabe en una pantalla. Arriba, fija, la barra
+  «Cómo trabajo · Etapa n de 3» y la espina como navegador (.ruta-m, tres pasos
+  con nombre); textos compactos de i18n/movil/metodo.ts. Primeros pasos cabe en
+  una pantalla: las capas son una fila de pestañas 1–5 con la elegida debajo; el
+  laboratorio y el ciclo, filas cortas. El bloque de la derecha (.modulo) entra
+  completo, con su recuadro, en vez de solo su texto.
 */
 import { content, type Lang } from "../i18n/content";
 import { marcar } from "../i18n/terminos";
+import { metodoMovil } from "../i18n/movil/metodo";
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const c = content[lang];
 const m = c.method, l = c.layers, lab = c.lab, op = c.operate, g = c.glossary;
 const mk = (t: string) => marcar(t, g);
+/* celular: textos compactos (i18n/movil). Se pintan los dos y el CSS muestra
+   uno u otro según html.movil (.t-d escritorio, .t-m celular) */
+const mv = metodoMovil[lang];
+const dos = (d: string, m: string) => `<span class="t-d">${mk(d)}</span><span class="t-m">${mk(m)}</span>`;
 const arriba = l.items.map((it, i) => ({ ...it, i })).reverse();
+const nf = m.phases.length;
+/* texto nuevo (no está en content.ts): «Etapa 1 de 3» */
+const etapa = (k: number) => c.ui.stage.replace("{n}", String(k + 1)).replace("{t}", String(nf));
 ---
 {m.phases.map((ph, f) => (
   <section class:list={["panel fase", `fase-${f}`]} id={ph.id} data-nav data-parent={f ? "metodo" : undefined}
     data-grupo="metodo" data-title={c.ui.panels[ph.id]} style="--lx:72%;--ly:45%">
     <div class="wrap">
       <header class="cab">
-        <nav class="espina" aria-label={m.title}>
+        {/* aria-label distinto por etapa: apiladas en celular son tres nav seguidos */}
+        <nav class="espina" aria-label={`${m.title} · ${etapa(f)}`}>
           {m.phases.map((q, k) => (
             <>
               {k > 0 && <span class:list={["tramo", { hecho: k <= f }]} aria-hidden="true"></span>}
               {k === f ? (
-                <div class="grupo actual" aria-current="step">
+                <div class:list={["grupo actual", { k0: k === 0, kn: k === nf - 1 }]} aria-current="step">
+                  <span class="kicker n-etapa" aria-hidden="true">{m.title} · {etapa(f)}</span>
                   <h2 class="tit">{q.title}</h2>
                   <span class="nodo" aria-hidden="true"></span>
                 </div>
               ) : (
-                <a href={`#${q.id}`} class:list={["grupo", { hecho: k < f }]}>
+                <a href={`#${q.id}`} class:list={["grupo", { hecho: k < f, k0: k === 0, kn: k === nf - 1 }]}>
                   <span class="tit">{q.title}</span>
                   <span class="nodo" aria-hidden="true"></span>
                 </a>
               )}
             </>
           ))}
+          {/* solo celular: los tres pasos con su nombre, cada uno un objetivo táctil */}
+          <ol class="ruta-m">
+            {m.phases.map((q, k) => (
+              <li class:list={[{ hecho: k < f, actual: k === f, unido: k > 0 && k <= f }]}>
+                {k === f ? (
+                  <span class="pm" aria-current="step"><span class="nodo" aria-hidden="true"></span><span class="nm">{q.title}</span></span>
+                ) : (
+                  <a class="pm" href={`#${q.id}`}><span class="nodo" aria-hidden="true"></span><span class="nm">{q.title}</span></a>
+                )}
+              </li>
+            ))}
+          </ol>
         </nav>
-        <p class="lema" data-r>{ph.intro}</p>
+        <p class="lema" data-r set:html={dos(ph.intro, mv.intro[f])} />
       </header>
 
       <div class="cuerpo">
@@ -53,8 +81,8 @@ const arriba = l.items.map((it, i) => ({ ...it, i })).reverse();
             return (
               <article class="paso" data-r style={`--i:${k + 1}`}>
                 <h3>{s.title}</h3>
-                <p set:html={mk(s.body)} />
-                <p class="lleva"><span class="kicker">{m.get}</span><span set:html={mk(s.get)} /></p>
+                <p set:html={dos(s.body, mv.steps[si].body)} />
+                <p class="lleva"><span class="kicker">{m.get}<span class="sr-only">: </span></span><span set:html={dos(s.get, mv.steps[si].get)} /></p>
               </article>
             );
           })}
@@ -79,7 +107,7 @@ const arriba = l.items.map((it, i) => ({ ...it, i })).reverse();
                   {l.items.map((it, i) => (
                     <article class="det" role="tabpanel" id={`c-det-${i}`} aria-labelledby={`c-tab-${i}`} data-on={i === 0 ? "" : undefined}>
                       <h4>{it.title}</h4>
-                      <p set:html={mk(it.body)} />
+                      <p set:html={dos(it.body, mv.layers[i])} />
                       <ul>{it.list.map((x) => <li set:html={mk(x)} />)}</ul>
                     </article>
                   ))}
@@ -91,7 +119,7 @@ const arriba = l.items.map((it, i) => ({ ...it, i })).reverse();
           {f === 1 && (
             <div class="lab" data-r style="--i:2">
               <p class="kicker c-acc">{lab.kicker}</p>
-              <p class="intro" set:html={mk(lab.body)} />
+              <p class="intro" set:html={dos(lab.body, mv.lab.body)} />
               <div class="ruta">
                 <span class="linea" aria-hidden="true"><span class="pulso"></span></span>
                 <ol class="etapas">
@@ -102,7 +130,7 @@ const arriba = l.items.map((it, i) => ({ ...it, i })).reverse();
                   ))}
                 </ol>
               </div>
-              <ul class="puntos">{lab.points.map((p) => <li>{p}</li>)}</ul>
+              <ul class="puntos">{lab.points.map((p, i) => <li set:html={dos(p, mv.lab.points[i])} />)}</ul>
             </div>
           )}
 
@@ -115,7 +143,7 @@ const arriba = l.items.map((it, i) => ({ ...it, i })).reverse();
                   <span class="pulso"></span>
                   {op.loop.map((x, i) => <span class={`p p${i}`}><i></i>{x}</span>)}
                 </div>
-                <p>{op.loopText}</p>
+                <p set:html={dos(op.loopText, mv.operate.loopText)} />
               </div>
             </div>
           )}
@@ -143,7 +171,9 @@ const arriba = l.items.map((it, i) => ({ ...it, i })).reverse();
   .grupo::before, .grupo::after { content: ""; position: absolute; z-index: -1; bottom: 8px; width: 50%; height: 2px; background: var(--line); }
   .grupo::before { left: 0; }
   .grupo::after { right: 0; }
-  .grupo:first-child::before, .grupo:last-child::after { display: none; }
+  .grupo.k0::before, .grupo.kn::after { display: none; }
+  /* piezas solo de celular (ver «modo apilado» abajo) */
+  .n-etapa, .ruta-m { display: none; }
   .tramo { min-width: 48px; height: 2px; margin-bottom: 8px; background: var(--line); }
   .grupo:is(.hecho, .actual)::before, .grupo.hecho::after, .tramo.hecho { background: color-mix(in srgb, var(--acc) 60%, var(--line)); }
   .nodo { width: 14px; height: 14px; margin: 2px; transform: rotate(45deg); border: 2px solid var(--line); background: var(--bg); transition: background .3s, border-color .3s; }
@@ -253,17 +283,173 @@ const arriba = l.items.map((it, i) => ({ ...it, i })).reverse();
     h2.tit { white-space: normal; text-align: center; font-size: clamp(1.6rem, 4.2vw, 2.4rem); }
     span.tit { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   }
-  @media (max-width: 760px) {
-    .lema { display: none; }
-  }
   @media (max-width: 900px) {
     .cuerpo { grid-template-columns: 1fr; gap: 16px; }
     .cg { grid-template-columns: 1fr; }
-    .etapas { grid-template-columns: 1fr; gap: 6px; }
-    .linea, .ruta .pulso { display: none; }
-    .etapa { min-height: 0; grid-template-columns: auto 1fr; align-items: baseline; gap: 12px; }
     .ciclo { grid-template-columns: 1fr; justify-items: center; }
+    .aro .p { font-size: .75rem; }
+
+    /* laboratorio: recorrido vertical 01→05, una línea punteada une los rombos
+       y el pulso baja por ella; sin cajas, para que no parezcan botones.
+       La primera línea de cada paso mide 24 px y empieza a 10 px: su centro
+       (22 px) es el del rombo y el extremo de la línea. */
+    .etapas { grid-template-columns: 1fr; gap: 0; }
+    .linea { left: 4px; right: auto; top: 22px; bottom: 22px; width: 2px; height: auto;
+      background: repeating-linear-gradient(180deg, var(--line) 0 8px, transparent 8px 14px); }
+    .ruta .pulso { top: 0; left: -3px; margin-top: -4px; animation-name: baja; }
+    .etapa { min-height: 0; grid-template-columns: auto 1fr; align-items: baseline; gap: 12px; padding: 10px 0 10px 30px;
+      background: none; border-left: 0; animation: none; }
+    .etapa::before { content: ""; position: absolute; left: 0; top: 17px; width: 10px; height: 10px; transform: rotate(45deg);
+      background: var(--bg2); border: 2px solid var(--acc); animation: late-m 4.5s linear infinite; animation-delay: calc(var(--d) * 1.125s); }
+    .etapa.origen { background: none; }
+    .etapa.origen::before { background: var(--acc); animation: none; }
+    .etapa .n { font-size: .75rem; }
+    .etapa .t { font-size: 1rem; line-height: 24px; }
   }
+  @keyframes baja { from { top: 0; } to { top: 100%; } }
+  @keyframes late-m { 0%, 9%, 100% { background: var(--bg2); box-shadow: none; } 3% { background: var(--acc); box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc) 22%, transparent); } }
+  :global(.js) .fase:not(.active) .etapa::before { animation-play-state: paused; }
+
+  /* ciclo en una fila corta (celular vertical y teléfono acostado):
+     ◆ Operar → ◆ Medir → ◆ Mejorar → ◆ Estudiar ↺ */
+  @media (max-width: 760px), (max-height: 500px) {
+    .ciclo { grid-template-columns: 1fr; justify-items: start; gap: 10px; margin-top: 20px; padding: 16px 0 0; border-top: 1px solid var(--line); }
+    .aro { width: auto; aspect-ratio: auto; margin: 0; border: 0; transform: none; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 8px; }
+    .aro .pulso { display: none; }
+    .aro .p { position: static; transform: none; display: inline-flex; align-items: center; gap: 8px; font-size: .75rem; letter-spacing: .06em; }
+    .aro .p i { width: 9px; height: 9px; }
+    .aro .p + .p::before { content: "→"; color: var(--muted); letter-spacing: 0; }
+    .aro .p3::after { content: "↺"; color: var(--acc); font-size: 1rem; letter-spacing: 0; }
+  }
+
+  /* ── celular (html.movil) ──
+     Cada etapa cabe en una pantalla. Arriba, igual y en el mismo lugar en las
+     tres etapas, la barra del método: «Cómo trabajo · Etapa n de 3» y la espina
+     como navegador (tres pasos con nombre, cada uno un objetivo táctil; la etapa
+     actual resaltada). Tocar otra etapa cambia el contenido sin mover la página
+     (main.mismo, Header). El contenido empieza arriba y no centrado: así la barra
+     no brinca aunque las etapas midan distinto. El h2 (nombre de la etapa) queda
+     solo para lector de pantalla: a la vista ya está resaltado en la espina.
+     Textos compactos (.t-m, i18n/movil/metodo.ts) en lugar de los de escritorio (.t-d). */
+  .fase :global(.t-m) { display: none; }
+  :global(html.movil) .fase :global(.t-d) { display: none; }
+  :global(html.movil) .fase :global(.t-m) { display: inline; }
+  :global(html.movil) .fase.panel { padding: 12px 0 10px; }
+  :global(html.movil) .fase > .wrap { margin-block: 0 auto; gap: 10px; }
+  :global(html.movil) .cab { gap: 8px; }
+  :global(html.movil) .espina { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; align-items: start; padding-bottom: 2px; border-bottom: 1px solid var(--line); }
+  :global(html.movil) .espina > :is(a.grupo, .tramo) { display: none; }
+  :global(html.movil) .espina > .actual { display: block; order: -2; }
+  :global(html.movil) .espina > .actual::before,
+  :global(html.movil) .espina > .actual::after,
+  :global(html.movil) .espina > .actual > .nodo { display: none; }
+  :global(html.movil) .n-etapa { display: block; color: var(--acc); }
+  :global(html.movil) h2.tit { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :global(html.movil) .ruta-m { order: -1; position: relative; isolation: isolate; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ruta-m li { position: relative; display: grid; }
+  /* tramo de línea: del rombo anterior a este (detrás de los rombos) */
+  .ruta-m li + li::before { content: ""; position: absolute; z-index: -1; top: 13px; left: -50%; width: 100%; height: 2px; background: var(--line); }
+  .ruta-m li.unido::before { background: color-mix(in srgb, var(--acc) 60%, var(--line)); }
+  .pm { display: grid; justify-items: center; align-content: start; gap: 4px; min-height: 44px; padding: 5px 4px 4px; text-decoration: none; color: var(--muted); }
+  .pm .nodo { margin: 2px; }
+  .nm { font: 500 .8125rem/1.25 var(--f-b); text-align: center; text-wrap: balance; }
+  .actual .nm { color: var(--ink); font-weight: 600; }
+  a.pm:hover { color: var(--acc); }
+  a.pm:hover .nodo { border-color: var(--acc); }
+  a.pm:focus-visible { outline-offset: 0; }
+  :global(html.movil) .lema { font-size: 1rem; line-height: 1.45; }
+
+  /* pasos: título, texto corto y «Te llevas» en una línea (etiqueta + texto) */
+  :global(html.movil) .cuerpo { gap: 12px; align-items: start; }
+  :global(html.movil) .pasos { gap: 12px; align-content: start; }
+  :global(html.movil) .paso { gap: 4px; }
+  :global(html.movil) h3 { font-size: 1.25rem; line-height: 1.15; letter-spacing: -.025em; }
+  :global(html.movil) .paso > p { font-size: .9375rem; line-height: 1.45; }
+  :global(html.movil) .lleva { display: block; padding-left: 10px; font-size: .8125rem; line-height: 1.4; }
+  :global(html.movil) .lleva .kicker { margin-right: 6px; letter-spacing: .04em; color: var(--acc); }
+  :global(html.movil) .modulo { padding: 10px 12px 12px; align-content: start; }
+  :global(html.movil) .intro { margin-top: 4px; font-size: .875rem; line-height: 1.4; }
+
+  /* laboratorio: el recorrido en dos filas (◆ Laboratorio ◇ Lo ves funcionar
+     ◇ …); los rombos se encienden en orden, eso marca el sentido */
+  :global(html.movil) .ruta { margin-top: 10px; }
+  :global(html.movil) .ruta .linea { display: none; }
+  :global(html.movil) .etapas { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+  :global(html.movil) .etapa { display: inline-flex; align-items: center; gap: 7px; min-height: 0; padding: 0; background: none; border-left: 0; animation: none;
+    font: 500 .8125rem/1.3 var(--f-b); }
+  :global(html.movil) .etapa::before { content: ""; position: static; flex: none; width: 9px; height: 9px; transform: rotate(45deg);
+    background: var(--bg2); border: 2px solid var(--acc); animation: late-m 4.5s linear infinite; animation-delay: calc(var(--d) * .9s); }
+  :global(html.movil) .etapa.origen::before { background: var(--acc); animation: none; }
+  :global(html.movil) .etapa .n { display: none; }
+  :global(html.movil) .etapa .t { font: inherit; }
+  :global(html.movil) .puntos { margin-top: 10px; }
+  :global(html.movil) :is(.puntos, .queda) li { padding: 4px 0 4px 18px; font-size: .8125rem; line-height: 1.35; }
+  :global(html.movil) :is(.puntos, .queda) li::before { left: 1px; top: calc(4px + .45em); }
+
+  /* entrega */
+  :global(html.movil) .queda { margin-top: 6px; }
+  :global(html.movil) .ciclo { margin-top: 10px; padding-top: 10px; gap: 6px; }
+  :global(html.movil) .aro { gap: 6px; }
+  :global(html.movil) .aro .p { gap: 6px; letter-spacing: .03em; }
+  /* la flecha va al final de cada paso: si la fila se parte, nunca abre la línea */
+  :global(html.movil) .aro .p + .p::before { content: none; }
+  :global(html.movil) .aro .p:not(.p3)::after { content: "→"; color: var(--muted); letter-spacing: 0; }
+  :global(html.movil) .ciclo p { font-size: .875rem; line-height: 1.4; }
+
+  /* teléfonos de 320 px: un paso menos de letra para acercarse a una pantalla
+     (si aun así no cabe, el panel se desplaza un poco) */
+  @media (max-width: 359px) {
+    :global(html.movil) .nm { font-size: .75rem; }
+    :global(html.movil) .pm { padding-inline: 2px; }
+    :global(html.movil) .lema { font-size: .9375rem; line-height: 1.4; }
+    :global(html.movil) h3 { font-size: 1.125rem; }
+    :global(html.movil) .paso > p { font-size: .875rem; line-height: 1.4; }
+    :global(html.movil) .lleva { font-size: .75rem; }
+  }
+
+  /* primeros pasos en una pantalla: capas como fila de pestañas 1–5 (el script
+     quita el acordeón en celular) y debajo la capa elegida: nombre y una línea */
+  :global(html.movil) .capas > .intro { display: none; }
+  :global(html.movil) .cg { margin-top: 8px; gap: 8px; }
+  :global(html.movil) .pila { display: flex; flex-direction: row-reverse; gap: 4px; padding-left: 0; }
+  :global(html.movil) .pila .columna, :global(html.movil) .capa::before { display: none; }
+  :global(html.movil) .pila .capa { flex: 1 1 0; min-width: 0; min-height: 44px; justify-content: center; align-items: center; padding: 0;
+    border-left: 0; border-bottom: 2px solid var(--line); }
+  :global(html.movil) .pila .capa[aria-selected="true"] { border-bottom-color: var(--acc); }
+  :global(html.movil) .pila .capa .n { font: 600 1.1rem/1 var(--f-b); }
+  :global(html.movil) .pila .capa .t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :global(html.movil) .det { gap: 2px; }
+  :global(html.movil) .det h4 { font-size: 1.05rem; line-height: 1.25; letter-spacing: -.015em; }
+  :global(html.movil) .det ul { display: none; }
+
+  /* el bloque de la derecha entra completo (recuadro y texto juntos) al cambiar
+     de etapa: el revelado [data-r] pasa del contenido al .modulo */
+  :global(html.js.movil) .fase .modulo { opacity: 0; transform: translateY(24px);
+    transition: opacity .6s cubic-bezier(.2, .7, .2, 1), transform .6s cubic-bezier(.2, .7, .2, 1); }
+  :global(html.paneles.movil) .fase.active .modulo { opacity: 1; transform: none; transition-delay: 340ms; }
+  :global(html.movil) .fase .modulo > [data-r] { opacity: 1; transform: none; transition: none; }
+
+  /* capas en acordeón (celular y pantallas ≤900 px; el script pone .acordeon):
+     orden 1→5 y cada capa abre su detalle justo debajo */
+  .acordeon .dets { display: none; }
+  .acordeon .pila { gap: 6px; }
+  .acordeon .impulso { background: linear-gradient(to bottom, transparent, var(--acc)); animation-direction: reverse; }
+  .acordeon .capa { min-height: 48px; align-items: center; padding: 12px 14px; }
+  .acordeon .capa .n { font-size: .75rem; }
+  .acordeon .capa .t { flex: 1; font-size: 1rem; }
+  .acordeon .capa::after { content: ""; flex: none; width: 8px; height: 8px; margin: -4px 4px 0 8px; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg); transition: transform .25s; }
+  .acordeon .capa[aria-expanded="true"] { color: var(--ink); border-left-color: var(--acc); background: color-mix(in srgb, var(--acc) 12%, var(--bg)); }
+  .acordeon .capa[aria-expanded="true"]::before { background: var(--acc); border-color: var(--acc); }
+  .acordeon .capa[aria-expanded="true"]::after { margin-top: 4px; transform: rotate(-135deg); }
+  :global(.js) .acordeon .det { grid-area: auto; margin-top: -6px; padding: 12px 14px 14px; background: var(--bg); border-left: 2px solid var(--acc);
+    opacity: 1; visibility: visible; transform: none; transition: none; }
+  :global(.js) .acordeon .det:not([data-on]) { display: none; }
+  :global(.js) .acordeon .det[data-on] { animation: abre .3s cubic-bezier(.2, .7, .2, 1); }
+  .acordeon .det h4 { display: none; }
+  @keyframes abre { from { opacity: 0; transform: translateY(-6px); } }
+  :global(html.movil) .det p { font-size: .8125rem; line-height: 1.4; }
+  :global(html.movil) .det li { padding: 4px 0 4px 18px; font-size: .8125rem; line-height: 1.35; }
+  :global(html.movil) .det li::before { left: 1px; top: calc(4px + .45em); }
   @media print {
     .modulo { display: none; }
   }
@@ -303,23 +489,73 @@ const arriba = l.items.map((it, i) => ({ ...it, i })).reverse();
   addEventListener("resize", medir);
   document.fonts?.ready.then(medir);
 
+  /* capas: dos patrones con los mismos nodos.
+     · Pestañas (pantalla grande con .paneles y >900 px): lista 5→1 a la izquierda,
+       detalle a la derecha; flechas arriba/abajo cambian de capa. Es el HTML de origen.
+     · En celular (.movil) las mismas pestañas, en fila 1→5 (CSS).
+     · Acordeón (901 px o menos sin .movil): botones 1→5 con aria-expanded y cada
+       detalle movido justo debajo de su botón; se pueden abrir varias a la vez
+       (cerrar las demás movería la capa tocada fuera de la pantalla). */
   const sec = document.querySelector<HTMLElement>(".fase-0 .capas");
   if (sec) {
-    const tabs = [...sec.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
-    const dets = [...sec.querySelectorAll<HTMLElement>(".det")];
+    const root = document.documentElement;
+    const pila = sec.querySelector<HTMLElement>(".pila")!;
+    const caja = sec.querySelector<HTMLElement>(".dets")!;
+    const etiqueta = pila.getAttribute("aria-label") ?? "";
     const idx = (t: HTMLElement) => Number(t.id.split("-").pop());
+    const tabs = [...sec.querySelectorAll<HTMLButtonElement>(".capa")].sort((a, b) => idx(a) - idx(b));
+    const dets = tabs.map((t) => document.getElementById(t.getAttribute("aria-controls")!)!);
+    const estrecho = matchMedia("(max-width: 900px)");
+    let acordeon = false;
     const pick = (i: number, focus = false) => {
-      tabs.forEach((t) => { const on = idx(t) === i; t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1; if (on && focus) t.focus(); });
+      tabs.forEach((t, k) => { const on = k === i; t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1; if (on && focus) t.focus(); });
       dets.forEach((d, k) => d.toggleAttribute("data-on", k === i));
     };
-    tabs.forEach((t) => {
-      t.addEventListener("click", () => pick(idx(t)));
+    const abrir = (i: number, on: boolean) => {
+      tabs[i].setAttribute("aria-expanded", String(on));
+      dets[i].toggleAttribute("data-on", on);
+    };
+    const modo = () => {
+      const fila = root.classList.contains("movil");
+      pila.setAttribute("aria-orientation", fila ? "horizontal" : "vertical");
+      const a = !fila && estrecho.matches;
+      if (a === acordeon) return;
+      acordeon = a;
+      const abierta = Math.max(0, dets.findIndex((d) => d.hasAttribute("data-on")));
+      sec.classList.toggle("acordeon", a);
+      if (a) {
+        ["role", "aria-orientation", "aria-label"].forEach((x) => pila.removeAttribute(x));
+        tabs.forEach((t, i) => {
+          t.removeAttribute("role"); t.removeAttribute("aria-selected"); t.removeAttribute("tabindex");
+          dets[i].removeAttribute("role");
+          pila.append(t, dets[i]);
+          abrir(i, i === abierta);
+        });
+      } else {
+        pila.setAttribute("role", "tablist"); pila.setAttribute("aria-orientation", root.classList.contains("movil") ? "horizontal" : "vertical"); pila.setAttribute("aria-label", etiqueta);
+        [...tabs].reverse().forEach((t) => { t.setAttribute("role", "tab"); t.removeAttribute("aria-expanded"); pila.append(t); });
+        dets.forEach((d) => { d.setAttribute("role", "tabpanel"); caja.append(d); });
+        pick(abierta);
+      }
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener("click", () => {
+        if (!acordeon) return pick(i);
+        const on = t.getAttribute("aria-expanded") !== "true";
+        abrir(i, on);
+      });
       t.addEventListener("keydown", (e) => {
-        const d = e.key === "ArrowUp" ? 1 : e.key === "ArrowDown" ? -1 : 0;
+        if (acordeon) return;
+        /* vertical (5 arriba): ↑ sube de capa; horizontal (celular, 1 a la izquierda): → avanza */
+        const d = e.key === "ArrowUp" || e.key === "ArrowRight" ? 1 : e.key === "ArrowDown" || e.key === "ArrowLeft" ? -1 : 0;
         if (!d) return;
         e.preventDefault();
-        pick((idx(t) + d + tabs.length) % tabs.length, true);
+        pick((i + d + tabs.length) % tabs.length, true);
       });
     });
+    modo();
+    estrecho.addEventListener("change", modo);
+    /* Base/Header ponen o quitan .movil al cambiar el tamaño de la ventana */
+    new MutationObserver(modo).observe(root, { attributes: true, attributeFilter: ["class"] });
   }
 </script>
