@@ -3,22 +3,36 @@
   Portada: la empresa como sistema nervioso. A la izquierda la promesa y el
   problema; a la derecha la red viva (canvas propio, sin librerías) con un log
   flotante que narra lo que pasa. Azul = señal, rojo = impulso crítico,
-  púrpura = sinapsis (punto de retorno). Con «reducir movimiento» se dibuja
-  una sola imagen fija.
+  púrpura = sinapsis (punto de retorno). Con «reducir movimiento» o con
+  html.pausa se dibuja una sola imagen fija.
+  Apilado (≤900 px de ancho o ≤560 de alto): intro → mapa (el canvas vive solo
+  dentro de .lienzo, sin texto encima) → log compacto → el problema → las 9
+  áreas como <details> («Hoy / Con la red»). En escritorio esa misma lista existe
+  solo para lectores de pantalla.
+  Celular (html.movil, ver Header.astro): la portada se parte en dos
+  subpantallas ([data-sub]) que se recorren deslizando: 1) la promesa y los
+  botones; 2) «El problema» + el mapa vivo + un registro compacto. La lista de
+  áreas vuelve a ser solo para lectores de pantalla (la ficha del mapa la
+  sustituye al tocar un nodo). Textos compactos: i18n/movil/hero.ts.
 */
 import { content, type Lang } from "../i18n/content";
+import { heroMovil } from "../i18n/movil/hero";
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const ui = content[lang].ui;
 const h = content[lang].hero;
 const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels };
+/* textos propios de esta vista (aún no están en content.ts) */
+const areasTitle = ui.areasTitle;
+const tapHint = ui.tapHint;
+const hm = heroMovil[lang];
 ---
 <section class="panel hero" id="inicio" data-nav data-title={ui.panels.inicio}>
   <canvas class="red" aria-hidden="true"></canvas>
 
   <div class="cuerpo">
     <div class="izq">
-      <div>
+      <div class="intro" data-sub>
         <p class="kicker" data-r><span class="vivo" aria-hidden="true"></span>{h.kicker}</p>
         <h1 data-r style="--i:1">{h.titleA} <span class="glitch" data-t={h.titleEm}>{h.titleEm}</span></h1>
         <p class="lead" data-r style="--i:2">{h.lead}<b>{h.leadEm}</b>{h.leadEnd}</p>
@@ -26,19 +40,23 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
           <a class="btn" href="#metodo">{h.ctaPrimary}</a>
           <a class="btn ghost" href="#contacto">{h.ctaSecondary}</a>
         </div>
+        <!-- en celular la franja acompaña a la promesa (la de «El problema» se oculta) -->
+        <div class="franja franja-m" data-r style="--i:4">{h.strip.map((s) => <span>{s}</span>)}</div>
       </div>
 
       <div class="problema" data-r style="--i:4">
         <p class="num">{h.problem.num}</p>
         <h2>{h.problem.title}</h2>
-        <p>{h.problem.body}</p>
+        <p class="txt-d">{h.problem.body}</p>
+        <p class="txt-m">{hm.problemBody}</p>
         <div class="franja">{h.strip.map((s) => <span>{s}</span>)}</div>
       </div>
     </div>
 
-    <div class="mapa">
-      <aside class="log cut-tr" aria-label={`${h.log.title} ${h.log.live}`}>
-        <div class="tit"><span>{h.log.title} · <span class="c-ink">{h.log.live}</span></span><span class="c-rojo reloj">00:00:00</span></div>
+    <div class="mapa" data-sub>
+      <div class="lienzo"></div>
+      <aside class="log cut-tr" aria-hidden="true">
+        <div class="tit"><span>{h.log.title} · <span class="c-ink">{h.log.live}</span></span><span class="c-rojo reloj">00:00:00</span><span class="tit-m">Network</span></div>
         <div class="met">
           <span>{h.log.areas} <b>{h.nodes.length}</b></span>
           <span>{h.log.impulses} <b class="n-imp">0</b></span>
@@ -46,12 +64,31 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
         </div>
         <ol class="eventos" aria-live="off"></ol>
         <div class="ley">
-          <span><i class="c-acc">◆</i> {h.log.legend[0]}</span>
-          <span><i class="c-rojo">◆</i> {h.log.legend[1]}</span>
-          <span><i class="c-sin">◆</i> {h.log.legend[2]}</span>
-          <span class="c-ink">{h.log.legend[3]}</span>
+          <span><i class="c-acc">◆</i> <span class="txt-d">{h.log.legend[0]}</span><span class="txt-m">{hm.legend[0]}</span></span>
+          <span><i class="c-rojo">◆</i> <span class="txt-d">{h.log.legend[1]}</span><span class="txt-m">{hm.legend[1]}</span></span>
+          <span><i class="c-sin">◆</i> <span class="txt-d">{h.log.legend[2]}</span><span class="txt-m">{hm.legend[2]}</span></span>
+          <span class="c-ink pista-cursor">{h.log.legend[3]}</span>
+          <span class="c-ink pista-tacto">{tapHint}</span>
         </div>
       </aside>
+    </div>
+
+    <div class="areas" data-r>
+      <h2 class="areas-t">{areasTitle}</h2>
+      <ul class="areas-sr">
+        {h.nodes.map((nd) => <li>{nd.n}. {h.labels.today}: {nd.today} {h.labels.withNet}: {nd.withNet}</li>)}
+      </ul>
+      <div class="areas-l">
+        {h.nodes.map((nd, i) => (
+          <details class="area">
+            <summary><span class="ix" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>{nd.n}</summary>
+            <dl>
+              <div><dt class="c-rojo">{h.labels.today}</dt><dd>{nd.today}</dd></div>
+              <div><dt class="c-acc">{h.labels.withNet}</dt><dd>{nd.withNet}</dd></div>
+            </dl>
+          </details>
+        ))}
+      </div>
     </div>
   </div>
 
@@ -72,7 +109,7 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
   @keyframes latido { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
   h1 { margin-top: clamp(14px, 2.4vh, 26px); font-weight: 600; font-size: clamp(2.8rem, min(6.2vw, 11vh), 6.4rem); line-height: .98; letter-spacing: -.04em; }
   .glitch { position: relative; display: inline-block; color: var(--acc); }
-  .glitch::before, .glitch::after { content: attr(data-t); position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; }
+  .glitch::before, .glitch::after { content: attr(data-t); content: attr(data-t) / ""; position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; }
   .glitch::before { color: var(--red); animation: g1 7s infinite steps(1); }
   .glitch::after { color: var(--ink); animation: g2 7s infinite steps(1); }
   @keyframes g1 { 0%, 90%, 100% { opacity: 0; } 91% { opacity: .9; transform: translate(-4px, 1px); clip-path: inset(8% 0 58% 0); }
@@ -111,12 +148,127 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
   .ficha :global(.fila) { margin-top: 10px; font-size: .85rem; line-height: 1.45; }
   .ficha :global(.et) { display: block; font: 500 .66rem/1.2 var(--f-m); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 2px; }
 
+  /* lista de áreas: en escritorio solo para lectores de pantalla */
+  .lienzo, .areas-l, .pista-tacto { display: none; }
+  .areas { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* ── apilado (celular, teléfono en horizontal, ventanas angostas o bajas) ──
+     .izq se disuelve (display: contents) para poder ordenar sus piezas alrededor
+     del mapa. El canvas lo mete el script en .lienzo: así nunca pasa sobre texto. */
   @media (max-width: 900px), (max-height: 560px) {
-    .cuerpo { grid-template-columns: 1fr; grid-template-rows: auto 64vh; height: auto; }
-    .log { width: auto; left: var(--gutter); }
-    .ley { display: none; }
+    .hero { grid-template-rows: auto; }
+    .cuerpo { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; height: auto; align-content: start; }
+    .izq { display: contents; }
+    .intro { order: 1; padding: clamp(20px, 5vh, 48px) var(--gutter) 0; }
+    .mapa { order: 2; margin-top: clamp(24px, 4vh, 36px); }
+    .problema { order: 3; margin: clamp(28px, 7vw, 44px) var(--gutter) 0; }
+    .areas { order: 4; position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal;
+      padding: clamp(28px, 7vw, 44px) var(--gutter) clamp(36px, 9vw, 60px); max-width: calc(640px + 2 * var(--gutter)); }
+
+    /* con scroll, «el problema» y la lista entran solos: sin el retraso escalonado de escritorio */
+    :global(html.movil .active) .problema[data-r], :global(html.movil .active) .areas[data-r] { transition-delay: 120ms; }
+    .problema .num { font-size: .75rem; }
+    .franja { font-size: .75rem; gap: 6px 16px; }
+
+    .lienzo { display: block; position: relative; isolation: isolate; height: clamp(280px, 56svh, 520px);
+      border-block: 1px solid var(--line); overflow: hidden; }
+    .log { position: static; width: auto; margin: 12px var(--gutter) 0; font-size: .75rem; padding: 10px 14px 10px;
+      backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg2); }
+    .log .met { gap: 4px 14px; }
+    .eventos { height: calc(2 * 1.75em); margin-top: 8px; padding-top: 6px; }
+    .eventos :global(li:nth-child(n+3)) { display: none; }
+    .ley { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+
+    .ficha { width: min(290px, calc(100% - 24px)); padding: 14px 16px; }
+    .ficha :global(.et) { font-size: .75rem; }
+
+    .areas-t, .problema h2 { font-size: 1.25rem; line-height: 1.25; letter-spacing: -.015em; }
+    .areas-sr { display: none; }
+    .areas-l { display: block; margin-top: 14px; border-top: 1px solid var(--line); }
+    .area { border-bottom: 1px solid var(--line); }
+    .area summary { list-style: none; display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 10px 0;
+      cursor: pointer; font-weight: 500; line-height: 1.3; -webkit-tap-highlight-color: transparent; }
+    .area summary::-webkit-details-marker { display: none; }
+    /* misma flecha que los acordeones de Método y Arquitectura */
+    .area summary::after { content: ""; flex: none; width: 8px; height: 8px; margin: -4px 4px 0 auto; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg); transition: transform .25s; }
+    .area[open] summary::after { margin-top: 4px; transform: rotate(-135deg); }
+    .area[open] summary { color: var(--acc); }
+    .ix { font: 500 .75rem/1 var(--f-m); color: var(--muted); letter-spacing: .08em; }
+    .area dl { margin: 0 0 16px; padding-left: 14px; border-left: 2px solid var(--acc); display: grid; gap: 10px; }
+    .area dt { font: 500 .75rem/1.2 var(--f-m); letter-spacing: .1em; text-transform: uppercase; }
+    .area dd { margin: 3px 0 0; color: var(--muted); font-size: .95rem; line-height: 1.5; }
+  }
+  /* sin cursor: la pista del log invita a tocar en vez de pasar el cursor */
+  @media (hover: none) and (max-width: 900px), (hover: none) and (max-height: 560px) {
+    .pista-cursor { display: none; }
+    .pista-tacto { display: inline; }
   }
   :global(html.quieto) .vivo, :global(html.quieto) .glitch::before, :global(html.quieto) .glitch::after { animation: none; }
+  /* teléfonos angostos: los dos botones de la portada a todo el ancho, como en Contacto */
+  @media (max-width: 420px) { .cta .btn { flex: 1 1 100%; justify-content: center; } }
+
+  /* textos y franja solo de celular: fuera de html.movil no existen (ni para lectores) */
+  .txt-m, .franja-m, .tit-m { display: none; }
+
+  /* ── celular (html.movil): dos subpantallas, cada una del alto de la pantalla ──
+     1) .intro: promesa, botones y franja, centrados; abajo queda libre el lugar
+        de la pista «Desliza» (Header.astro).
+     2) «El problema» + .mapa ([data-sub]): el texto arriba, el canvas llena el
+        alto que sobra y el registro compacto cierra abajo.
+     «El problema» no es [data-sub] (vive en otra columna en escritorio): se
+     muestra junto con el mapa (:has). Sin :has se vería en ambas: nada se pierde. */
+  :global(html.movil) .hero { display: flex; flex-direction: column; }
+  :global(html.movil) .hero::before { display: block; --lx: 70%; --ly: 30%; } /* luz sutil detrás de la promesa */
+  :global(html.movil) .cuerpo { flex: 1 0 auto; display: flex; flex-direction: column; height: auto; }
+  :global(html.movil) .txt-d { display: none; }
+  :global(html.movil) .txt-m { display: inline; }
+  :global(html.movil) .problema .txt-m { display: block; }
+
+  :global(html.movil) .intro { flex: 1 0 auto; display: flex; flex-direction: column; justify-content: center;
+    padding: 20px var(--gutter) 64px; }
+  :global(html.movil) .franja-m { display: flex; margin-top: 22px; }
+  :global(html.movil) .problema .franja { display: none; }
+
+  :global(html.movil) .hero:not(:has(.mapa.sub-on)) .problema { display: none; }
+  :global(html.movil) .hero:has(.mapa.sub-on) .problema { animation: sub-in .45s cubic-bezier(.2, .7, .2, 1); }
+  :global(html.movil) .hero:has(.mapa.sub-on.atras) .problema { animation-name: sub-in-atras; }
+  /* con «pausar animaciones» la entrada de la subpantalla se congelaría en su primer
+     cuadro (opacidad 0): en la portada simplemente no hay animación de entrada */
+  :global(html.pausa) .intro.sub-on, :global(html.pausa) .mapa.sub-on, :global(html.pausa) .hero .problema { animation: none !important; }
+  :global(html.movil) .problema { order: 2; flex: none; max-width: none; margin: 0; padding: 18px var(--gutter) 0; border-top: 0; }
+  :global(html.movil) .problema h2 { margin-top: 6px; }
+  :global(html.movil) .problema p { margin-top: 6px; font-size: .9rem; line-height: 1.5; }
+  /* abajo, 48 px libres: la pista «Desliza» sigue visible en toda la portada */
+  :global(html.movil) .mapa { order: 3; flex: 1 0 auto; display: flex; flex-direction: column; margin-top: 14px; padding-bottom: 48px; }
+  :global(html.movil) .lienzo { flex: 1 0 auto; height: auto; min-height: clamp(160px, 30svh, 220px); }
+  /* registro como terminal: solo el encabezado «Network» y las líneas que se
+     van imprimiendo (la más nueva abajo, tecleada, con cursor). Sin métricas,
+     reloj ni leyenda. El script antepone cada línea: column-reverse la pinta abajo. */
+  :global(html.movil) .log { flex: none; margin-top: 10px; padding: 8px 12px; border-left: 0; border-top: 2px solid var(--acc); }
+  :global(html.movil) .log .tit > :not(.tit-m), :global(html.movil) .log .met, :global(html.movil) .ley { display: none; }
+  :global(html.movil) .log .tit-m { display: inline; color: var(--muted); }
+  :global(html.movil) .eventos { display: flex; flex-direction: column-reverse; justify-content: flex-start;
+    height: calc(3 * 1.6em); margin-top: 6px; padding-top: 6px; }
+  :global(html.movil) .eventos :global(li) { display: block; flex: none; line-height: 1.6; color: var(--ink); opacity: 1; animation: teclea .9s steps(32, end); }
+  :global(html.movil) .eventos :global(li:nth-child(n+2)) { display: block; color: var(--muted); }
+  :global(html.movil) .eventos :global(li:nth-child(n+4)) { display: none; }
+  :global(html.movil) .eventos :global(li)::before { content: "$ "; color: var(--acc); }
+  :global(html.movil) .eventos :global(li:first-child)::after { content: "▌"; margin-left: 2px; color: var(--acc); animation: latido 1s steps(1) infinite; }
+  :global(html.movil) .eventos :global(.h) { display: none; }
+  @keyframes teclea { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  /* teléfonos bajos (iPhone SE): sin la franja de la promesa ni la línea de eventos del registro */
+  @media (max-height: 600px) {
+    :global(html.movil) .franja-m { display: none; }
+    :global(html.movil) .eventos { height: calc(2 * 1.6em); }
+    :global(html.movil) .intro { padding-top: 12px; padding-bottom: 52px; }
+    :global(html.movil) .problema { padding-top: 12px; }
+    :global(html.movil) .problema h2 { font-size: 1.1rem; }
+  }
+
+  /* la lista de las 9 áreas no cabe: otra vez solo para lectores de pantalla */
+  :global(html.movil) .areas { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :global(html.movil) .areas-sr { display: block; }
+  :global(html.movil) .areas-l { display: none; }
 </style>
 
 <script>
@@ -129,6 +281,8 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
     const cv = hero.querySelector<HTMLCanvasElement>(".red")!;
     const ctx = cv.getContext("2d")!;
     const mapa = hero.querySelector<HTMLElement>(".mapa")!;
+    const lienzo = hero.querySelector<HTMLElement>(".lienzo")!;
+    const detalles = [...hero.querySelectorAll<HTMLDetailsElement>(".area")];
     const ficha = hero.querySelector<HTMLElement>(".ficha")!;
     const lista = hero.querySelector<HTMLElement>(".eventos")!;
     const nImp = hero.querySelector<HTMLElement>(".n-imp")!;
@@ -137,15 +291,22 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
     const D = JSON.parse(hero.querySelector(".hero-data")!.textContent!);
     const root = document.documentElement;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    /* mismo corte que el CSS: con la portada apilada el canvas vive en .lienzo */
+    const apilado = matchMedia("(max-width: 900px), (max-height: 560px)");
+    /* «reducir movimiento» del sistema o el botón de pausa (html.pausa) */
+    const quiere = () => !reduce.matches && !root.classList.contains("pausa");
 
-    let motion = !reduce.matches, visible = true;
+    let motion = quiere(), visible = true;
     let W = 0, H = 0, t = 0, mx = 0, my = 0, tmx = 0, tmy = 0;
     let M = { x: 0, y: 0, w: 0, h: 0 };
     let C: Record<string, string> & { dark?: any } = {};
 
     /* posiciones de las áreas en la red (x, y de -1 a 1; z = profundidad) */
     const POS = [[-.9, .02, 1], [-.6, -.5, .85], [-.32, .1, 1.25], [-.1, -.72, .75], [.12, .3, 1.05], [.3, .82, .85], [.44, -.22, 1.15], [.66, .44, .95], [.9, -.04, 1]];
+    /* en vertical (celular): el mismo flujo en zigzag hacia abajo, para que las etiquetas no se encimen */
+    const POS_V = [[-.85, -.85], [-.15, -.55], [-.75, -.05], [.75, -.85], [.1, .25], [-.55, .8], [.8, -.25], [.55, .6], [.85, .9]];
     const NODES: Nodo[] = D.nodes.map((n: any, i: number) => ({ ...n, x: POS[i][0], y: POS[i][1], z: POS[i][2] }));
+    const colocar = (v: boolean) => NODES.forEach((nd, i) => { const P = v ? POS_V : POS; nd.x = P[i][0]; nd.y = P[i][1]; });
     const EDGES: Arista[] = [[0,1],[1,2],[2,3],[2,4],[3,4],[4,5],[4,6],[6,7],[7,8]].map(([a, b], i) => ({ a, b, ret: false, k: (i % 2 ? 1 : -1) * .18 }));
     const RETURNS: Arista[] = [[5, 2], [6, 4], [7, 1]].map(([a, b], i) => ({ a, b, ret: true, k: .42, msg: D.returns[i] }));
     const ALL = EDGES.concat(RETURNS);
@@ -205,10 +366,14 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
 
     /* ---------- geometría: la red ocupa la columna del mapa ---------- */
     const ancho = () => W >= 900 && H >= 560;
-    const lay = () => ({
-      cx: M.x + M.w * (ancho() ? .44 : .5), sx: M.w * (ancho() ? .4 : .42),
-      cy: M.y + M.h * (ancho() ? .55 : .6), sy: M.h * (ancho() ? .4 : .3),
-    });
+    /* apilado: el canvas mide lo mismo que .lienzo, así que la red usa casi todo el alto */
+    const lay = () => apilado.matches
+      ? { cx: M.x + M.w * .5, sx: M.w * (angosto() ? .38 : .42), cy: M.y + M.h * .5, sy: M.h * .38 }
+      : {
+        cx: M.x + M.w * (ancho() ? .44 : .5), sx: M.w * (ancho() ? .4 : .42),
+        cy: M.y + M.h * (ancho() ? .55 : .6), sy: M.h * (ancho() ? .4 : .3),
+      };
+    const angosto = () => W < 560;
     function pos(nd: Nodo) {
       const L = lay();
       const sway = motion ? Math.sin(t * .0006 + nd.x * 3) * 5 * nd.z : 0;
@@ -226,7 +391,7 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
     /* ---------- población ---------- */
     function poblar() {
       motas.length = 0; chispas.length = 0;
-      const n = Math.round(Math.min(170, (W * H) / 8500));
+      const n = Math.round(Math.min(170, (W * H) / (apilado.matches ? 4000 : 8500)));
       for (let i = 0; i < n; i++) motas.push({ x: Math.random() * W, y: Math.random() * H, z: .3 + Math.random() * .9, vx: (Math.random() - .5) * .12, vy: (Math.random() - .5) * .12 });
       for (let i = 0; i < W / 9; i++) nuevaChispa(Math.random() * H);
     }
@@ -346,7 +511,7 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
         rombo(p.x, p.y, 10 + a.r, rgba(C[a.col], a.a), true);
         if (a.col !== "blue") rombo(p.x, p.y, 9, rgba(C[a.col], a.a));
       }
-      ctx.font = `500 ${W >= 900 ? 11.5 : 10.5}px "JetBrains Mono", monospace`;
+      ctx.font = `500 ${W >= 900 ? 11.5 : angosto() ? 11 : 10.5}px "JetBrains Mono", monospace`;
       ctx.textBaseline = "middle";
       NODES.forEach((nd, i) => {
         const p = P[i], s = 5 + nd.z * 3, hov = i === hoverIdx;
@@ -354,19 +519,24 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
         rombo(p.x, p.y, s + 6 + (nd.f || 0) * 6, rgba(C.blue, ((nd.f || 0) * .5 + (hov ? .5 : 0)) * niebla), true);
         rombo(p.x, p.y, s, rgba(hov ? C.blue : C.ink, niebla));
         ctx.fillStyle = rgba(C.ink, (hov ? 1 : .72) * niebla);
-        const izq = nd.x > .8;
+        /* angosto: nombre corto («Pedido») y, en la mitad derecha, la etiqueta a la izquierda del nodo */
+        const izq = nd.x > (angosto() ? .3 : .8);
         ctx.textAlign = izq ? "right" : "left";
-        ctx.fillText(nd.n.toUpperCase(), p.x + (izq ? -(s + 10) : s + 10), p.y);
+        ctx.fillText((angosto() ? corto(i) : nd.n).toUpperCase(), p.x + (izq ? -(s + 10) : s + 10), p.y);
       });
       ctx.textAlign = "left";
     }
 
     /* ---------- interacción ---------- */
-    hero.addEventListener("pointermove", (ev) => {
-      const r = hero.getBoundingClientRect();
+    /* coordenadas relativas al canvas: en escritorio cubre la portada entera y en
+       apilado solo .lienzo. Con el dedo (pointerdown) tocar un nodo abre su ficha
+       y deja abierto su <details> en la lista de áreas. */
+    const lim = (v: number) => Math.max(-1, Math.min(1, v));
+    function apuntar(ev: PointerEvent) {
+      const r = cv.getBoundingClientRect();
       const x = ev.clientX - r.left, y = ev.clientY - r.top;
-      tmx = (x / W) * 2 - 1; tmy = (y / H) * 2 - 1;
-      let best = -1, bd = 34;
+      tmx = lim((x / W) * 2 - 1); tmy = lim((y / H) * 2 - 1);
+      let best = -1, bd = ev.pointerType === "touch" ? 44 : 34;
       NODES.forEach((nd, i) => { const p = pos(nd), d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; best = i; } });
       if (best !== hoverIdx) {
         hoverIdx = best;
@@ -377,23 +547,49 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
           lanzarSenal(best, "cursor");
         } else ficha.classList.remove("on");
       }
+      if (best >= 0 && ev.type === "pointerdown" && apilado.matches) detalles[best].open = true;
       if (hoverIdx >= 0) {
         const p = pos(NODES[hoverIdx]);
-        ficha.style.left = Math.max(12, Math.min(W - 302, p.x + 24)) + "px";
-        ficha.style.top = Math.min(H - 170, Math.max(12, p.y + 18)) + "px";
+        if (apilado.matches) {
+          /* dentro de .lienzo: si abajo no cabe, la ficha va arriba del nodo */
+          const fw = ficha.offsetWidth, fh = ficha.offsetHeight;
+          let top = p.y + 18;
+          if (top + fh > H - 8) top = Math.max(8, p.y - fh - 18);
+          ficha.style.left = Math.max(12, Math.min(W - fw - 12, p.x + 24)) + "px";
+          ficha.style.top = top + "px";
+        } else {
+          ficha.style.left = Math.max(12, Math.min(W - 302, p.x + 24)) + "px";
+          ficha.style.top = Math.min(H - 170, Math.max(12, p.y + 18)) + "px";
+        }
       }
       hero.style.cursor = hoverIdx >= 0 ? "crosshair" : "";
       if (!motion) dibujar();
+    }
+    hero.addEventListener("pointermove", apuntar);
+    hero.addEventListener("pointerdown", apuntar);
+    /* con el dedo, al soltar también llega pointerleave: la ficha se queda hasta el siguiente toque */
+    hero.addEventListener("pointerleave", (ev) => {
+      if (ev.pointerType === "touch") return;
+      tmx = tmy = 0; hoverIdx = -1; ficha.classList.remove("on"); if (!motion) dibujar();
     });
-    hero.addEventListener("pointerleave", () => { tmx = tmy = 0; hoverIdx = -1; ficha.classList.remove("on"); if (!motion) dibujar(); });
 
     /* ---------- ciclo ---------- */
     function medir() {
-      const r = hero.getBoundingClientRect(), m = mapa.getBoundingClientRect();
-      const dpr = Math.min(2, devicePixelRatio || 1);
-      W = r.width; H = Math.max(r.height, hero.scrollHeight);
-      M = { x: m.left - r.left, y: m.top - r.top, w: m.width, h: m.height };
-      cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + "px";
+      const ap = apilado.matches, host = ap ? lienzo : hero;
+      if (cv.parentElement !== host) { host.prepend(cv); host.append(ficha); hoverIdx = -1; ficha.classList.remove("on"); }
+      if (ap) {
+        /* apilado: el canvas solo cubre .lienzo y a lo más 1.5× de densidad (batería) */
+        const l = lienzo.getBoundingClientRect();
+        W = l.width; H = l.height;
+        M = { x: 0, y: 0, w: W, h: H };
+      } else {
+        const r = hero.getBoundingClientRect(), m = mapa.getBoundingClientRect();
+        W = r.width; H = Math.max(r.height, hero.scrollHeight);
+        M = { x: m.left - r.left, y: m.top - r.top, w: m.width, h: m.height };
+      }
+      colocar(angosto());
+      const dpr = Math.min(ap ? 1.5 : 2, devicePixelRatio || 1);
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.height = H + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       poblar();
     }
@@ -419,19 +615,57 @@ const data = { nodes: h.nodes, returns: h.returns, log: h.log, labels: h.labels 
     }
     setInterval(() => { if (visible) { nImp.textContent = String(imp.length); relojEl.textContent = reloj(); } }, 500);
 
-    /* la animación solo corre mientras la portada está a la vista */
-    document.addEventListener("panel", (e) => {
-      const ver = (e as CustomEvent).detail === "inicio";
+    /* la animación solo corre mientras la portada está a la vista; apilada, además,
+       solo mientras .lienzo está en pantalla (la portada es larga y abajo solo hay texto).
+       En celular (html.movil) el mapa es la 2.ª subpantalla: solo corre mientras
+       esa subpantalla es la activa (.sub-on, la pone Header.astro). */
+    let enPanel = hero.classList.contains("active") || !root.classList.contains("js"), enVista = true;
+    const enSub = () => !root.classList.contains("movil") || mapa.classList.contains("sub-on");
+    function verSiCorre() {
+      const ver = enPanel && enSub() && (!apilado.matches || enVista);
       if (ver === visible) return;
       visible = ver;
       if (visible) { medir(); arrancar(); } else cancelAnimationFrame(raf);
+    }
+    document.addEventListener("panel", (e) => { enPanel = (e as CustomEvent).detail === "inicio"; verSiCorre(); });
+    /* cambio de subpantalla: al llegar al mapa se re-mide (antes estaba oculto y
+       medía 0) y arranca; al salir se pausa y la ficha abierta se cierra */
+    document.addEventListener("sub", (e) => {
+      if ((e as CustomEvent).detail?.id !== "inicio") return;
+      if (!enSub()) { hoverIdx = -1; ficha.classList.remove("on"); }
+      const antes = visible;
+      verSiCorre();
+      if (antes && visible) { medir(); if (!motion) dibujar(); }
     });
-    reduce.addEventListener("change", () => { motion = !reduce.matches; arrancar(); });
-    new MutationObserver(() => { leerColores(); if (!motion) dibujar(); }).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    if ("IntersectionObserver" in window)
+      new IntersectionObserver(([e]) => { enVista = e.isIntersecting; verSiCorre(); }).observe(lienzo);
+    reduce.addEventListener("change", () => { motion = quiere(); arrancar(); });
+    /* Ojo: arrancar() alterna html.quieto, que también dispara este observador.
+       Solo se rearranca si cambió lo que se quiere (pausa / reducir movimiento),
+       así que ese cambio propio no hace nada y no hay bucle. */
+    new MutationObserver((ms) => {
+      if (ms.some((m) => m.attributeName === "data-theme")) { leerColores(); if (!motion) dibujar(); }
+      const q = quiere();
+      if (q !== motion) { motion = q; arrancar(); }
+    }).observe(root, { attributes: true, attributeFilter: ["data-theme", "class"] });
     matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { leerColores(); if (!motion) dibujar(); });
-    addEventListener("resize", () => { medir(); if (!motion) dibujar(); });
+    /* En celular la barra de direcciones cambia el alto de la ventana al desplazarse.
+       Apilado, el tamaño del canvas depende solo de .lienzo (alto en svh, que no
+       cambia con esa barra): se re-mide solo cuando .lienzo cambia de verdad. */
+    addEventListener("resize", () => {
+      if (apilado.matches && cv.parentElement === lienzo) return;
+      medir(); if (!motion) dibujar();
+    });
+    if ("ResizeObserver" in window)
+      new ResizeObserver(() => {
+        if (!apilado.matches) return;
+        const l = lienzo.getBoundingClientRect();
+        if (cv.parentElement === lienzo && Math.abs(l.width - W) < 1 && Math.abs(l.height - H) < 1) return;
+        medir(); if (!motion) dibujar();
+      }).observe(lienzo);
+    apilado.addEventListener("change", () => { medir(); verSiCorre(); if (!motion) dibujar(); });
 
-    visible = hero.classList.contains("active") || !root.classList.contains("js");
+    visible = enPanel && enSub();
     leerColores(); medir(); arrancar();
   }
 </script>

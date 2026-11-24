@@ -4,15 +4,22 @@
   El dato recorre cinco estaciones (nace, viaja, se revisa, se guarda, se usa)
   dentro de un marco de reglas y responsables. Cada estación es un botón: abajo
   se explica qué es, por qué importa, cómo lo hago y cómo se llama en términos
-  técnicos (con su definición al pasar el cursor). Sin JS se muestran todas.
+  técnicos. En escritorio la explicación va abajo en tres columnas; en tableta
+  cada estación abre su explicación justo debajo (acordeón). En celular (.movil)
+  todo cabe en una pantalla: fila compacta de estaciones con flechas y, debajo,
+  la explicación de la elegida con texto corto (i18n/movil/arquitectura.ts).
+  Sin JS se muestran todas.
 */
 import { content, type Lang } from "../i18n/content";
 import { marcar } from "../i18n/terminos";
+import { arquitecturaMovil } from "../i18n/movil/arquitectura";
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const c = content[lang];
 const a = c.arch;
 const todas = [...a.stations, a.frame];
+const am = arquitecturaMovil[lang];
+const cortas = [...am.stations, am.frame];
 const MARCO = a.stations.length;
 const mk = (t: string) => marcar(t, c.glossary);
 ---
@@ -20,23 +27,27 @@ const mk = (t: string) => marcar(t, c.glossary);
   <div class="wrap">
     <header class="sec-h" data-r>
       <h2>{a.title}</h2>
-      <p>{a.intro}</p>
+      <p class="no-m">{a.intro}</p>
+      <p class="solo-m">{am.intro}</p>
     </header>
 
     <div class="mapa" data-r style="--i:1" role="group" aria-label={a.title}>
-      <button type="button" class="est marco" data-i={MARCO} aria-pressed="false">
-        <span class="tag">{a.frame.tag}</span><b>{a.frame.node}</b><span class="sub">{a.frame.sub}</span>
+      <button type="button" class="est marco" id={`arq-est-${MARCO}`} data-i={MARCO} aria-expanded="false" aria-controls={`arq-det-${MARCO}`}>
+        <span class="tag">{a.frame.tag}</span><b>{a.frame.node}</b><span class="sub">{a.frame.sub}</span><span class="flecha" aria-hidden="true"></span>
       </button>
       <div class="ruta">
         {a.stations.map((s, i) => (
           <>
             {i > 0 && <span class="tubo" aria-hidden="true" style={`--d:${i}`}><i></i></span>}
-            <button type="button" class:list={["est", `e${i}`]} data-i={i} aria-pressed={i === 0 ? "true" : "false"}>
+            <button type="button" class:list={["est", `e${i}`]} id={`arq-est-${i}`} data-i={i} aria-expanded={i === 0 ? "true" : "false"} aria-controls={`arq-det-${i}`}>
+              <span class="m-est" aria-hidden="true"><span class="m-n">{i + 1}</span><span class="m-v">{am.stations[i].verb}</span></span>
               <span class="tag">{s.tag}</span>
               <b>{s.node}</b>
               {i === 2 && <span class="sello" aria-hidden="true">✓ ✓</span>}
               {i === 3 && <span class="zonas" aria-hidden="true">{s.sub.split(" · ").map((z) => <i>{z}</i>)}</span>}
+              {i === 3 && <span class="sr-only">{s.sub}</span>}
               {i !== 3 && <span class="sub">{s.sub}</span>}
+              <span class="flecha" aria-hidden="true"></span>
             </button>
           </>
         ))}
@@ -44,9 +55,10 @@ const mk = (t: string) => marcar(t, c.glossary);
       <p class="pie"><span>{a.hint}</span><span>{a.base}</span></p>
     </div>
 
-    <div class="dets" data-r style="--i:2" aria-live="polite">
+    <p class="sr-only" aria-live="polite" data-aviso data-pre={c.ui.showing}></p>
+    <div class="dets" data-r style="--i:2">
       {todas.map((s, i) => (
-        <article class:list={["det", { on: i === 0 }]} data-i={i}>
+        <article class:list={["det", { on: i === 0 }]} id={`arq-det-${i}`} data-i={i}>
           <div class="col">
             <span class="kicker c-acc">{s.tag}</span>
             <h3>{s.node}</h3>
@@ -60,6 +72,13 @@ const mk = (t: string) => marcar(t, c.glossary);
           <div class="col">
             <b>{a.labels.tech}</b>
             <div class="chips">{s.tech.map((t) => <span class="chip" set:html={mk(t)} />)}</div>
+          </div>
+          <div class="cm">
+            <h3>{s.node}</h3>
+            <p><b>{a.labels.what}</b> <span set:html={mk(cortas[i].what)} /></p>
+            <p><b>{a.labels.why}</b> <span set:html={mk(cortas[i].why)} /></p>
+            <div class="cm-how"><b>{a.labels.how}</b><ul>{cortas[i].how.map((h) => <li set:html={mk(h)} />)}</ul></div>
+            <p class="cm-tech"><b>{a.labels.tech}</b> {s.tech.map((t) => <span class="chip" set:html={mk(t)} />)}</p>
           </div>
         </article>
       ))}
@@ -78,7 +97,8 @@ const mk = (t: string) => marcar(t, c.glossary);
     transition: background .25s, border-color .25s, transform .25s; }
   .est:hover { transform: translateY(-2px); border-left-color: var(--acc); }
   .est:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
-  .est[aria-pressed="true"] { border-left-color: var(--acc); background: color-mix(in srgb, var(--acc) 14%, var(--bg2)); }
+  .est[aria-expanded="true"] { border-left-color: var(--acc); background: color-mix(in srgb, var(--acc) 14%, var(--bg2)); }
+  .flecha { display: none; }
   .tag { font: 500 .66rem/1 var(--f-m); letter-spacing: .1em; text-transform: uppercase; color: var(--acc); }
   .est b { font: 600 clamp(.95rem, .8rem + .55vw, 1.3rem)/1.1 var(--f-b); letter-spacing: -.02em; }
   .sub { font: 400 .78rem/1.35 var(--f-m); color: var(--muted); }
@@ -91,7 +111,7 @@ const mk = (t: string) => marcar(t, c.glossary);
   .marco { min-height: 0; width: 100%; grid-template-columns: auto auto 1fr; align-items: baseline; gap: 4px 14px; padding: 12px 4px 10px;
     margin-inline: 0; background: none; border-left: 0; border-bottom: 1.5px dashed color-mix(in srgb, var(--acc) 55%, transparent); clip-path: none; }
   .marco:hover { transform: none; }
-  .marco[aria-pressed="true"] { background: color-mix(in srgb, var(--acc) 10%, transparent); }
+  .marco[aria-expanded="true"] { background: color-mix(in srgb, var(--acc) 10%, transparent); }
 
   /* tubos: el dato viaja entre estaciones */
   .tubo { position: relative; align-self: center; height: 2px; margin-inline: 4px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 10px); }
@@ -118,14 +138,119 @@ const mk = (t: string) => marcar(t, c.glossary);
   :global(.js) .det.on li { animation: li-in .45s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--k, 0) * 60ms + 80ms); }
   @keyframes li-in { from { opacity: 0; transform: translateX(14px); } }
 
+  /* ── recorrido vertical: ≤1000 px, y siempre en modo acordeón ──
+     (.acordeon la pone el script en tableta: ni escritorio ancho y alto ni
+     celular). Sin JS, ≤1000 px usa estas mismas reglas y muestra todas las
+     explicaciones debajo. En celular (html.movil) lo de más abajo las reemplaza. */
   @media (max-width: 1000px) {
     .ruta { grid-template-columns: 1fr; gap: 0; }
-    .tubo { justify-self: start; width: 2px; height: 18px; margin: 0 0 0 20px; background: var(--line); }
-    .tubo::after, .tubo i { display: none; }
-    .est { min-height: 0; grid-template-columns: auto 1fr; align-items: baseline; gap: 4px 12px; padding: 10px 12px; }
-    .est .sub, .zonas, .sello { display: none; }
-    .det { grid-template-columns: 1fr; gap: 10px; }
-    .det .col:last-child { display: none; }
+    .tubo { justify-self: start; width: 2px; height: 22px; margin: 0 0 0 20px; background: var(--line); }
+    .tubo::after { right: auto; left: -4px; top: auto; bottom: -1px; border: 5px solid transparent; border-top: 6px solid var(--line); border-bottom: 0; }
+    .tubo i { display: none; }
+    .est { min-height: 44px; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 4px 12px; padding: 10px 12px; }
+    .est .sub, .zonas { grid-column: 1 / -1; }
+    .sello { display: none; }
+    .det { grid-template-columns: 1fr; gap: 14px; }
+  }
+  .acordeon .ruta { grid-template-columns: 1fr; gap: 0; }
+  .acordeon .tubo { justify-self: start; width: 2px; height: 22px; margin: 0 0 0 20px; background: var(--line); }
+  .acordeon .tubo::after { right: auto; left: -4px; top: auto; bottom: -1px; border: 5px solid transparent; border-top: 6px solid var(--line); border-bottom: 0; }
+  .acordeon .tubo i, .acordeon .sello, .acordeon .dets { display: none; }
+
+  /* cada estación es la cabecera de su explicación */
+  .acordeon .est { min-height: 48px; grid-template-columns: auto minmax(0, 1fr) 20px; align-items: baseline; gap: 4px 12px; padding: 10px 12px; scroll-margin-top: 12px; }
+  .acordeon .est:hover { transform: none; }
+  .acordeon .marco { padding: 12px; }
+  .acordeon .est .sub, .acordeon .zonas { grid-column: 1 / 3; }
+  .acordeon .tag, .acordeon .zonas i, .acordeon .pie { font-size: .75rem; }
+  /* en el acordeón las zonas se leen como texto (no tienen acción): sin caja */
+  .acordeon .zonas { gap: 0; }
+  .acordeon .zonas i { padding: 0; border: 0; background: none; color: var(--muted); }
+  .acordeon .zonas i + i::before { content: " · "; white-space: pre; }
+  .acordeon .zonas i:nth-child(2) { color: var(--ink); }
+  .acordeon .sub { font-size: .8rem; }
+  .acordeon .flecha { display: block; grid-column: 3; grid-row: 1 / span 2; align-self: center; justify-self: center; width: 9px; height: 9px;
+    border: solid var(--acc); border-width: 0 2px 2px 0; transform: translateY(-2px) rotate(45deg); transition: transform .25s; }
+  .acordeon .est[aria-expanded="true"] .flecha { transform: translateY(2px) rotate(-135deg); }
+
+  /* la explicación abierta cuelga de su estación: la línea del recorrido se vuelve púrpura */
+  :global(.js) .acordeon .det { display: none; grid-area: auto; grid-template-columns: 1fr; gap: 16px; margin: 0 0 0 20px; padding: 14px 0 18px 18px;
+    border-left: 2px solid var(--acc); opacity: 1; visibility: visible; transform: none; transition: none; }
+  :global(.js) .acordeon .det.on { display: grid; animation: abre .3s cubic-bezier(.2, .7, .2, 1) both; }
+  @keyframes abre { from { opacity: 0; transform: translateY(-6px); } }
+  .acordeon .det .kicker { display: none; }
+  .acordeon .det h3 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .acordeon .col { gap: 10px; }
+  .acordeon .col p { gap: 4px; }
+  .acordeon .col b { font-size: .75rem; }
+  .acordeon .marco + .det { margin-top: 8px; }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.js) .acordeon .det.on, :global(.js) .acordeon .det.on li { animation: none; }
+    .acordeon .flecha { transition: none; }
+  }
+  /* ── celular (html.movil, lo pone Base.astro): una sola pantalla ──
+     Arriba el marco de gobierno; debajo las cinco estaciones en fila (número y
+     verbo) unidas por flechas; abajo la explicación de la elegida con texto
+     corto. Se comporta como escritorio: siempre hay una abierta. Lo que solo
+     existe en celular (.solo-m, .m-est, .cm) no se ve en ningún otro tamaño. */
+  .solo-m, .m-est, .cm { display: none; }
+  :global(html.movil) .no-m { display: none; }
+  :global(html.movil) .solo-m { display: block; }
+  :global(html.movil) .wrap { gap: 14px; }
+  :global(html.movil) .sec-h p { margin-top: 6px; font-size: .92rem; line-height: 1.45; }
+  :global(html.movil) .mapa { padding: 0 8px 8px; }
+  :global(html.movil) .pie { display: none; }
+  :global(html.movil) .ruta { grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr) 12px minmax(0, 1fr) 12px minmax(0, 1fr) 12px minmax(0, 1fr);
+    gap: 0; margin-top: 8px; }
+  :global(html.movil) .tubo { justify-self: stretch; width: auto; height: 2px; margin: 0 2px; background: var(--acc); }
+  :global(html.movil) .tubo::after { left: auto; right: -2px; top: -4px; bottom: auto; border: 5px solid transparent; border-left: 5px solid var(--acc); border-right: 0; }
+  :global(html.movil) .tubo i { display: none; }
+  :global(html.movil) .est { min-height: 50px; grid-template-columns: 1fr; justify-items: center; align-content: center; gap: 0; padding: 6px 2px;
+    border-left: 0; border-bottom: 2px solid var(--line); text-align: center; }
+  :global(html.movil) .est:hover { transform: none; }
+  :global(html.movil) .est[aria-expanded="true"] { border-bottom-color: var(--acc); }
+  :global(html.movil) .est > :is(.tag, b) { font-size: .75rem; position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :global(html.movil) .est > :is(.sub, .zonas, .sello, .flecha) { display: none; }
+  :global(html.movil) .m-est { display: grid; justify-items: center; gap: 3px; }
+  :global(html.movil) .m-n { font: 600 1.15rem/1 var(--f-b); color: var(--acc); }
+  :global(html.movil) .m-v { font: 500 .75rem/1.1 var(--f-m); letter-spacing: .02em; text-transform: uppercase; }
+  /* el marco de gobierno: una línea, el mismo botón de escritorio */
+  :global(html.movil) .marco { min-height: 44px; grid-template-columns: auto minmax(0, 1fr); justify-items: start; align-items: baseline; gap: 0 10px;
+    padding: 10px 4px; border-bottom: 1.5px dashed color-mix(in srgb, var(--acc) 55%, transparent); text-align: left; }
+  :global(html.movil) .marco > :is(.tag, b) { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+  :global(html.movil) .marco > .tag { font-size: .75rem; }
+  :global(html.movil) .marco > b { font-size: 1rem; }
+  :global(html.movil) .marco[aria-expanded="true"] { border-bottom-style: solid; border-bottom-color: var(--acc); }
+
+  /* la explicación: texto corto, etiquetas en línea */
+  :global(html.movil) .det { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  :global(html.movil) .dets > .det { margin: 0; } /* sin el margen de .det + .det: todas van apiladas en la misma celda */
+  :global(html.movil) .det > .col { display: none; }
+  :global(html.movil) .cm { display: grid; gap: 6px; align-content: start; padding-left: 12px; border-left: 2px solid var(--acc); }
+  :global(html.movil) .cm h3 { font-size: 1.15rem; line-height: 1.25; letter-spacing: -.02em; }
+  :global(html.movil) .cm p { font-size: .9rem; line-height: 1.42; color: var(--muted); }
+  :global(html.movil) .cm b { font: 500 .75rem/1.3 var(--f-m); letter-spacing: .08em; text-transform: uppercase; color: var(--ink); margin-right: 4px; }
+  :global(html.movil) .cm-how b { display: block; margin-bottom: 2px; }
+  :global(html.movil) .cm li { position: relative; padding: 3px 0 3px 18px; border-top: 1px solid var(--line); font-size: .88rem; line-height: 1.35; }
+  :global(html.movil) .cm li::before { content: "◆"; position: absolute; left: 2px; top: calc(3px + .45em); color: var(--acc); font-size: .6em; }
+  :global(html.movil) .cm-tech { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  :global(html.movil) .cm-tech b { letter-spacing: .04em; }
+  :global(html.movil) .cm-tech .chip { padding: 4px 7px; color: var(--ink); }
+  /* teléfonos de 320 px: un paso más chico (texto ≥12 px, botones ≥44 px) */
+  @media (max-width: 359px) {
+    :global(html.movil) .wrap { gap: 10px; }
+    :global(html.movil) .sec-h p { font-size: .85rem; line-height: 1.4; }
+    :global(html.movil) .est { min-height: 46px; padding-inline: 0; }
+    :global(html.movil) .m-v { font-size: .75rem; letter-spacing: -.04em; }
+    /* «CHECKED» (7 letras) debe caber en un botón de ~50 px */
+    :global(html.movil) .mapa { padding: 0 4px 6px; }
+    :global(html.movil) .ruta { margin-top: 6px; grid-template-columns: minmax(0, 1fr) 6px minmax(0, 1fr) 6px minmax(0, 1fr) 6px minmax(0, 1fr) 6px minmax(0, 1fr); }
+    :global(html.movil) .tubo { margin: 0 1px; }
+    :global(html.movil) .tubo::after { border-width: 4px 0 4px 4px; top: -3px; }
+    :global(html.movil) .cm { gap: 4px; padding-left: 10px; }
+    :global(html.movil) .cm h3 { font-size: 1.05rem; }
+    :global(html.movil) .cm p { font-size: .82rem; line-height: 1.38; }
+    :global(html.movil) .cm li { font-size: .8rem; }
   }
   @media print {
     .mapa { display: none; }
@@ -134,15 +259,65 @@ const mk = (t: string) => marcar(t, c.glossary);
 </style>
 
 <script>
+  /* Dos maneras de mostrar lo mismo:
+     · escritorio (≥1001 px de ancho y ≥501 px de alto): botones arriba y la
+       explicación elegida abajo, en tres columnas; siempre hay una abierta.
+     · celular (html.movil: ≤760 px de ancho o ≤500 de alto): igual que
+       escritorio (botones arriba, explicación abajo, siempre una abierta); el
+       CSS la compacta para que quepa en una pantalla.
+     · acordeón (todo lo demás: tableta): cada explicación se mueve justo
+       debajo de su estación; una abierta a la vez y se puede cerrar.
+     Al imprimir se vuelve al orden de escritorio. */
   const arch = document.querySelector<HTMLElement>(".arch");
   if (arch) {
     const ests = [...arch.querySelectorAll<HTMLButtonElement>(".est")];
     const dets = [...arch.querySelectorAll<HTMLElement>(".det")];
+    const caja = arch.querySelector<HTMLElement>(".dets")!;
+    const aviso = arch.querySelector<HTMLElement>("[data-aviso]")!;
+    const escritorio = matchMedia("(min-width: 1001px) and (min-height: 501px)");
+    const movil = matchMedia("(max-width: 760px), (max-height: 500px)"); // = Base.astro / Header.astro
+    const enAcordeon = () => !escritorio.matches && !movil.matches;
+    const quieto = matchMedia("(prefers-reduced-motion: reduce)");
+    const est = (i: number) => ests.find((e) => Number(e.dataset.i) === i)!;
+    let abierta = 0; // índice de la explicación abierta; -1 = ninguna (solo en acordeón)
     dets.forEach((d) => d.querySelectorAll<HTMLElement>("li").forEach((li, k) => li.style.setProperty("--k", String(k))));
-    const pick = (i: number) => {
-      ests.forEach((e) => e.setAttribute("aria-pressed", String(Number(e.dataset.i) === i)));
-      dets.forEach((d) => d.classList.toggle("on", Number(d.dataset.i) === i));
+
+    const pinta = () => {
+      ests.forEach((e) => e.setAttribute("aria-expanded", String(Number(e.dataset.i) === abierta)));
+      dets.forEach((d) => d.classList.toggle("on", Number(d.dataset.i) === abierta));
     };
-    ests.forEach((e) => e.addEventListener("click", () => pick(Number(e.dataset.i))));
+    const acomoda = (acordeon: boolean) => {
+      arch.classList.toggle("acordeon", acordeon);
+      if (acordeon) dets.forEach((d) => est(Number(d.dataset.i)).after(d));
+      else { caja.append(...dets); if (abierta < 0) abierta = 0; }
+      pinta();
+    };
+    /* si la cabecera abierta quedó fuera de la vista (o tan abajo que su
+       explicación no se ve), la sube al inicio de la vista */
+    const lleva = (b: HTMLElement) => requestAnimationFrame(() => {
+      const panel = document.documentElement.classList.contains("paneles") ? arch : null; // con JS siempre hay paneles
+      const top = panel ? panel.getBoundingClientRect().top : parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      const alto = (panel ? panel.getBoundingClientRect().bottom : innerHeight) - top;
+      const r = b.getBoundingClientRect();
+      if (r.top < top || r.top > top + alto * .6) b.scrollIntoView({ block: "start", behavior: quieto.matches ? "auto" : "smooth" });
+    });
+
+    ests.forEach((e) => e.addEventListener("click", () => {
+      const i = Number(e.dataset.i);
+      if (arch.classList.contains("acordeon")) {
+        abierta = abierta === i ? -1 : i;
+        pinta();
+        if (abierta === i) lleva(e);
+      } else if (abierta !== i) {
+        abierta = i;
+        pinta();
+        aviso.textContent = (aviso.dataset.pre || "") + (e.querySelector("b")?.textContent || "");
+      }
+    }));
+    acomoda(enAcordeon());
+    escritorio.addEventListener("change", () => acomoda(enAcordeon()));
+    movil.addEventListener("change", () => acomoda(enAcordeon()));
+    addEventListener("beforeprint", () => acomoda(false));
+    addEventListener("afterprint", () => acomoda(enAcordeon()));
   }
 </script>

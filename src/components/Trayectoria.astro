@@ -5,6 +5,7 @@
 */
 import { Image } from "astro:assets";
 import { content, type Lang } from "../i18n/content";
+import { trayectoriaMovil } from "../i18n/movil/trayectoria";
 import l1 from "../assets/img/layout-celda-transportador.png";
 import l2 from "../assets/img/layout-celdas-pems.png";
 import l3 from "../assets/img/layout-planta.png";
@@ -16,29 +17,31 @@ const c = content[lang].career;
 const s = c.sheets;
 const imgs: Record<string, ImageMetadata> = { "layout-celda-transportador": l1, "layout-celdas-pems": l2, "layout-planta": l3 };
 const last = c.items.length - 1;
+const m = trayectoriaMovil[lang]; /* textos compactos: solo se ven en html.movil */
 ---
 <section class="panel trayectoria" id="trayectoria" data-nav data-title={ui.panels.trayectoria} style="--lx:25%;--ly:30%">
   <div class="wrap">
     <div class="cols">
-      <div class="left">
+      <div class="left" data-sub>
         <header class="sec-h" data-r>
           <h2>{c.title}</h2>
         </header>
         <div class="quien" data-r style="--i:1">
           <Image src={retrato} alt="Andrés D. Ramos Luna" widths={[160, 320]} sizes="96px" class="foto cut" />
-          <p class="origin">{c.origin.lead}<b>{c.origin.em}</b>{c.origin.rest}</p>
+          <p class="origin"><span class="d">{c.origin.lead}<b>{c.origin.em}</b>{c.origin.rest}</span><span class="m">{m.origin.lead}<b>{m.origin.em}</b>{m.origin.rest}</span></p>
         </div>
-        <ol class="time rail" data-r style="--i:2">
+        <ol class="time" data-r style="--i:2">
           {c.items.map((it, i) => (
             <li class:list={{ cur: i === last }}>
-              <span class="rev">{it.rev}</span><span class="date">{it.date}</span><span>{it.text}</span>
+              <span class="rev">{it.rev}</span><span class="date">{it.date}</span><span><span class="d">{it.text}</span><span class="m">{m.items[i]}</span></span>
             </li>
           ))}
         </ol>
       </div>
 
-      <div class="right no-print">
-        <div class="sheets rail">
+      <div class="right no-print" data-sub>
+        <h3 class="lam-t kicker c-acc">{m.laminas}</h3>
+        <div class="sheets">
           {s.items.map((it, i) => (
             <figure data-r="s" style={`--i:${i + 1}`}>
               <button type="button" class="zoom" data-title={it.title} aria-label={`${it.title} · ${s.hint}`}>
@@ -52,9 +55,9 @@ const last = c.items.length - 1;
       </div>
     </div>
   </div>
-  <dialog class="dlg">
+  <dialog class="dlg" aria-labelledby="dlg-cap">
     <img alt="" />
-    <form method="dialog"><span class="cap"></span><button>{s.close}</button></form>
+    <form method="dialog"><span class="cap" id="dlg-cap"></span><button>{s.close}<span class="esc" aria-hidden="true"> · Esc</span></button></form>
   </dialog>
 </section>
 
@@ -98,12 +101,79 @@ const last = c.items.length - 1;
     .zoom { aspect-ratio: 16 / 10; }
     .hint { position: static; }
   }
+  /* celular: todo en una columna. La línea de tiempo conserva el formato de
+     escritorio (rev · fecha · texto) en columnas más angostas, y las láminas se
+     apilan: en carrusel solo se veían dos etapas y una lámina, sin pista de que
+     había más. */
   @media (max-width: 760px) {
-    .time { border-top: 0; grid-auto-columns: 62% !important; }
-    .time li { grid-template-columns: auto 1fr; align-content: start; gap: 4px 8px; padding: 10px 12px; border: 1px solid var(--line); background: var(--bg2); font-size: .88rem; }
-    .time li span:last-child { grid-column: 1 / -1; }
-    .sheets { grid-auto-columns: 80% !important; }
+    .quien { gap: 14px; align-items: start; }
+    .quien :global(.foto) { width: 72px; height: 72px; }
+    .origin { font-size: 1rem; }
+    .time li { grid-template-columns: 14px 4rem 1fr; gap: 8px; padding: 8px 0; font-size: .9rem; }
+    .date { font-size: .75rem; }
+    .sheets { grid-template-columns: 1fr; }
+    figcaption { font-size: .75rem; }
+    figcaption span { padding: 8px 12px; }
   }
+  /* teléfono en horizontal: las tres láminas en fila para no sumar 1300 px de alto */
+  @media (min-width: 560px) and (max-width: 760px) {
+    .sheets { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+    figcaption span { padding: 8px; }
+  }
+  /* textos compactos y rótulo de láminas: solo existen en el modo celular */
+  .m, .lam-t { display: none; }
+
+  /* ── modo celular (html.movil): dos subpantallas que caben sin desplazar ──
+     1) título, retrato con origen y las 8 etapas en 1–2 renglones cada una;
+     2) las tres láminas (una grande, dos abajo) con su rótulo y la pista. */
+  :global(html.movil) .d { display: none; }
+  :global(html.movil) .m { display: inline; }
+  :global(html.movil) .cols { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  :global(html.movil) .left { gap: 14px; align-content: start; }
+  :global(html.movil) .quien { grid-template-columns: 56px minmax(0, 1fr); gap: 12px; align-items: start; }
+  :global(html.movil) .quien :global(.foto) { width: 56px; height: 56px; }
+  :global(html.movil) .origin { font-size: .9rem; line-height: 1.4; }
+  :global(html.movil) .time li { grid-template-columns: 12px 3.9rem minmax(0, 1fr); gap: 8px; padding: 5px 0; font-size: .85rem; line-height: 1.35; }
+  :global(html.movil) .date { font-size: .75rem; }
+  :global(html.movil) .right { position: static; display: grid; gap: 10px; }
+  :global(html.movil) .lam-t { display: block; }
+  :global(html.movil) .sheets { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; gap: 10px; }
+  :global(html.movil) figure:first-child { grid-column: 1 / -1; }
+  :global(html.movil) .zoom { min-height: 0; aspect-ratio: 4 / 3; }
+  :global(html.movil) figure:first-child .zoom { aspect-ratio: 16 / 10; }
+  :global(html.movil) figcaption { font-size: .75rem; }
+  :global(html.movil) figcaption span { padding: 7px 10px; }
+  :global(html.movil) .hint { position: static; }
+  /* teléfonos de 320 px: el retrato flota y el texto lo rodea; renglones más
+     apretados para que las 8 etapas quepan o casi (lo que sobre se desplaza) */
+  @media (max-width: 360px) {
+    :global(html.movil) .left { gap: 10px; }
+    :global(html.movil) .quien { display: block; }
+    :global(html.movil) .quien :global(.foto) { float: left; width: 48px; height: 48px; margin: 3px 10px 0 0; }
+    :global(html.movil) .origin { font-size: .85rem; line-height: 1.38; }
+    :global(html.movil) .time li { grid-template-columns: 10px 3.6rem minmax(0, 1fr); gap: 6px; padding: 4px 0; font-size: .8rem; line-height: 1.32; }
+  }
+  /* teléfono en horizontal: las tres láminas en fila */
+  @media (orientation: landscape) {
+    :global(html.movil) .sheets { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    :global(html.movil) figure:first-child { grid-column: auto; }
+    :global(html.movil) figure:first-child .zoom { aspect-ratio: 4 / 3; }
+  }
+  /* zoom en celular (vertical u horizontal): la lámina ocupa el ancho, cabe en
+     alto y el botón de cerrar mide al menos 44 px */
+  :global(html.movil) dialog { width: calc(100vw - 16px); max-width: calc(100vw - 16px); max-height: calc(100svh - 16px); overflow: auto; }
+  :global(html.movil) dialog img { width: 100%; height: auto; max-height: 80svh; object-fit: contain; background: #1B2128; }
+  :global(html.movil) dialog form { padding: 6px 6px 6px 12px; font-size: .78rem; }
+  :global(html.movil) dialog button { min-height: 44px; min-width: 44px; padding: 0 14px; flex: none; }
+  /* la pista de la tecla Esc solo donde hay teclado y cursor */
+  @media (hover: none), (pointer: coarse) { .esc { display: none; } }
+  /* celular en vertical: la lámina es muy ancha; ampliada al alto disponible se
+     recorre de lado con el dedo. El pie con «Cerrar» se queda fijo a la izquierda. */
+  @media (orientation: portrait) {
+    :global(html.movil) dialog img { width: auto; max-width: none; height: min(62svh, 560px); max-height: none; }
+    :global(html.movil) dialog form { position: sticky; left: 0; width: calc(100vw - 18px); }
+  }
+  h3.lam-t { margin: 0; font-weight: 500; letter-spacing: .1em; } /* se ve como etiqueta; es encabezado para el lector */
 </style>
 
 <script>

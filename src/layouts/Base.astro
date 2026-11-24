@@ -48,7 +48,13 @@ const person = {
   <meta name="twitter:card" content="summary" />
   <script type="application/ld+json" set:html={JSON.stringify(person)} />
   <script is:inline>
-    document.documentElement.classList.add("js");
+    /* .js + .paneles: hay JavaScript, el sitio es una sola pantalla con paneles
+       (Header.astro). .movil: celular o ventana muy baja; los paneles se cambian
+       deslizando hacia arriba o abajo y algunos se parten en subpantallas
+       ([data-sub]). Header.astro actualiza .movil si cambia el tamaño. */
+    document.documentElement.classList.add("js", "paneles");
+    if (matchMedia("(max-width: 760px), (max-height: 500px)").matches) document.documentElement.classList.add("movil");
+    try { if (localStorage.getItem("pausa") === "1") document.documentElement.classList.add("pausa"); } catch (_) {}
     try { const th = localStorage.getItem("theme"); if (th === "light" || th === "dark") document.documentElement.dataset.theme = th; } catch (_) {}
   </script>
 </head>
